@@ -68,6 +68,31 @@ router.post('/:id/fund', auth, async (req, res) => {
   }
 });
 
+// POST /api/milestones/:id/verify-payment — save razorpayPaymentId after successful checkout
+router.post('/:id/verify-payment', auth, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const milestone = await Milestone.findById(req.params.id);
+    if (!milestone) return res.status(404).json({ message: 'Not found' });
+    if (milestone.client.toString() !== req.user.id) return res.status(403).json({ message: 'Clients only' });
+
+    // Verify Razorpay signature
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body).digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ message: 'Invalid payment signature' });
+    }
+
+    milestone.razorpayPaymentId = razorpay_payment_id;
+    await milestone.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // POST /api/milestones/:id/start — freelancer marks in_progress
 router.post('/:id/start', auth, async (req, res) => {
   try {

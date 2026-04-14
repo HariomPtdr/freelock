@@ -50,6 +50,61 @@ export default function ContractDashboard() {
     } finally { setActionLoading(null) }
   }
 
+  const handleFund = async (milestone) => {
+    setActionLoading(milestone._id + 'fund')
+    try {
+      const { data } = await api.post(`/api/milestones/${milestone._id}/fund`)
+
+      // Test mode — no real checkout needed
+      if (!data.razorpayKeyId || data.razorpayKeyId.includes('placeholder') || data.razorpayOrderId?.startsWith('order_test_')) {
+        toast.success('Funded! (test mode)')
+        await load()
+        setActionLoading(null)
+        return
+      }
+
+      const options = {
+        key: data.razorpayKeyId,
+        amount: Math.round(milestone.amount * 100),
+        currency: 'INR',
+        name: 'FreeLock Escrow',
+        description: milestone.title,
+        order_id: data.razorpayOrderId,
+        handler: async (response) => {
+          try {
+            await api.post(`/api/milestones/${milestone._id}/verify-payment`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+            toast.success('Payment successful! Milestone funded.')
+            await load()
+          } catch {
+            toast.error('Payment verification failed. Contact support.')
+          }
+        },
+        prefill: { name: user.name, email: user.email },
+        theme: { color: '#4f46e5' },
+        modal: {
+          ondismiss: () => {
+            toast('Payment cancelled.')
+            setActionLoading(null)
+          }
+        }
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.on('payment.failed', (response) => {
+        toast.error(`Payment failed: ${response.error.description}`)
+        setActionLoading(null)
+      })
+      rzp.open()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to initiate payment')
+      setActionLoading(null)
+    }
+  }
+
   const handleSubmitFile = async (milestoneId) => {
     const form = submitForms[milestoneId] || {}
     const fd = new FormData()
@@ -151,7 +206,7 @@ export default function ContractDashboard() {
               {user.role === 'client' && (
                 <div className="space-y-2">
                   {m.status === 'pending_deposit' && (
-                    <button onClick={() => doAction(m._id, 'fund', { paymentMethodId: 'pm_card_visa' })} disabled={isL('fund')}
+                    <button onClick={() => handleFund(m)} disabled={isL('fund')}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">
                       {isL('fund') ? 'Processing...' : `Fund Phase — ₹${m.amount?.toLocaleString()}`}
                     </button>
