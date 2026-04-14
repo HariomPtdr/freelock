@@ -6,7 +6,7 @@ import api from '../api'
 import Navbar from '../components/Navbar'
 import toast, { Toaster } from 'react-hot-toast'
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 
 export default function ChatRoom() {
   const { contractId } = useParams()
@@ -57,12 +57,12 @@ export default function ChatRoom() {
       setMessages(prev => [...prev, msg])
     })
 
-    socket.on('user-typing', ({ userId }) => {
-      if (userId !== user._id) setOtherTyping(true)
+    socket.on('user-typing', () => {
+      setOtherTyping(true)
     })
 
-    socket.on('user-stop-typing', ({ userId }) => {
-      if (userId !== user._id) setOtherTyping(false)
+    socket.on('user-stop-typing', () => {
+      setOtherTyping(false)
     })
 
     // Video call signals
@@ -95,10 +95,11 @@ export default function ChatRoom() {
   const sendMessage = () => {
     if (!text.trim()) return
     socketRef.current?.emit('send-message', {
-      roomId: contractId,
-      content: text.trim(),
+      contractId,
+      text: text.trim(),
       senderId: user._id,
       senderName: user.name,
+      senderRole: user.role,
     })
     setText('')
     stopTyping()
@@ -115,7 +116,7 @@ export default function ChatRoom() {
     setText(e.target.value)
     if (!typing) {
       setTyping(true)
-      socketRef.current?.emit('typing', { roomId: contractId, userId: user._id })
+      socketRef.current?.emit('typing', { contractId, name: user.name })
     }
     clearTimeout(typingTimerRef.current)
     typingTimerRef.current = setTimeout(stopTyping, 1500)
@@ -123,7 +124,7 @@ export default function ChatRoom() {
 
   const stopTyping = () => {
     setTyping(false)
-    socketRef.current?.emit('stop-typing', { roomId: contractId, userId: user._id })
+    socketRef.current?.emit('stop-typing', { contractId })
     clearTimeout(typingTimerRef.current)
   }
 
@@ -138,7 +139,7 @@ export default function ChatRoom() {
 
       peer.on('signal', (signal) => {
         socketRef.current?.emit('call-user', {
-          roomId: contractId,
+          contractId,
           signal,
           from: user._id,
           name: user.name,
@@ -166,7 +167,7 @@ export default function ChatRoom() {
       peerRef.current = peer
 
       peer.on('signal', (signal) => {
-        socketRef.current?.emit('accept-call', { roomId: contractId, signal })
+        socketRef.current?.emit('accept-call', { contractId, signal })
       })
 
       peer.on('stream', (remoteStream) => {
@@ -183,7 +184,7 @@ export default function ChatRoom() {
 
   const endCall = (notify = true) => {
     if (notify) {
-      socketRef.current?.emit('end-call', { roomId: contractId })
+      socketRef.current?.emit('end-call', { contractId })
     }
     peerRef.current?.destroy()
     peerRef.current = null
@@ -284,7 +285,7 @@ export default function ChatRoom() {
                     isMine ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-slate-100 text-slate-800 rounded-bl-sm'
                   }`}>
                     {!isMine && <p className="text-xs font-semibold mb-1 text-indigo-500">{msg.sender?.name || msg.senderName}</p>}
-                    <p className="leading-relaxed">{msg.content}</p>
+                    <p className="leading-relaxed">{msg.text}</p>
                     <p className={`text-xs mt-1 ${isMine ? 'text-indigo-200' : 'text-slate-400'}`}>
                       {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now'}
                     </p>

@@ -189,7 +189,7 @@ export default function FreelancerProfile() {
                     <span>Timeliness: {r.timeliness}/5</span>
                     <span>Professional: {r.professionalism}/5</span>
                   </div>
-                  {r.comment && <p className="text-sm text-slate-600 italic">"{r.comment}"</p>}
+                  {r.review && <p className="text-sm text-slate-600 italic">"{r.review}"</p>}
                 </div>
               ))}
             </div>

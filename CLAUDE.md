@@ -175,9 +175,17 @@ Client emits → Server handles → Server broadcasts:
 - 401 response → clears localStorage → redirects to `/login`
 - `ProtectedRoute` checks `token` + optionally `user.role` matches required role
 
-## Seed Data (node seed.js)
-Creates: admin@freelock.com / Admin@123, client@test.com / Pass123!, freelancer@test.com / Pass123!
-Plus: portfolios, 1 job, 1 negotiation (agreed), 1 contract, 4 milestones (advance released, Phase1 released, Phase2 in review, Phase3 pending)
+## Seed Data (node seed.js from server/)
+Creates:
+- admin@test.com / Test@123 → Admin User
+- client@test.com / Test@123 → Alex Johnson (Client)
+- freelancer@test.com / Test@123 → Sam Developer (Freelancer)
+
+Plus: portfolios, 1 contract, 4 milestones:
+- Advance (#0): released
+- Phase 1 (#1): released
+- Phase 2 (#2): in review (ready to approve/reject for demo)
+- Phase 3 (#3): pending_deposit (client needs to fund)
 
 ## Test Suite
 `node server/tests/workflow.test.js` — 50+ HTTP integration tests, no external deps, requires server running on :5001
