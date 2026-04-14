@@ -6,38 +6,13 @@ const crypto = require('crypto');
 const fs = require('fs');
 const Portfolio = require('../models/Portfolio');
 const auth = require('../middleware/auth');
+const { calcCompletion } = require('../utils/profileCompletion');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, '../uploads')),
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'))
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
-
-// Calculate profile completion percentage based on role
-function calcCompletion(role, data) {
-  if (role === 'freelancer') {
-    // Base 20%, max 100%
-    let pct = 20;
-    if (data.bio) pct += 15;
-    if (data.skills && data.skills.length > 0) pct += 15;
-    if (data.hourlyRate) pct += 10;
-    if (data.githubUrl) pct += 10;
-    if (data.linkedinUrl) pct += 5;
-    if (data.portfolioUrl) pct += 5;
-    if (data.projectSamples && data.projectSamples.length > 0) pct += 10;
-    if (data.resumeUrl) pct += 10;
-    return Math.min(100, pct);
-  } else {
-    // Client: base 20%
-    let pct = 20;
-    if (data.bio) pct += 20;
-    if (data.companyName) pct += 15;
-    if (data.industry) pct += 15;
-    if (data.linkedinUrl) pct += 15;
-    if (data.paymentVerified) pct += 15;
-    return Math.min(100, pct);
-  }
-}
 
 // GET /api/portfolio/:userId — public
 router.get('/:userId', async (req, res) => {

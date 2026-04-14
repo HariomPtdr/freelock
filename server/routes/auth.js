@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Portfolio = require('../models/Portfolio');
 const auth = require('../middleware/auth');
+const { calcCompletion } = require('../utils/profileCompletion');
 
 // Strong password: min 8 chars, must have uppercase, lowercase, number, special char
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
@@ -119,6 +120,16 @@ router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     const portfolio = await Portfolio.findOne({ user: req.user.id });
+
+    if (portfolio) {
+      // Always recalculate completion from actual field values — never trust the stored value
+      const freshPct = calcCompletion(portfolio.role, portfolio);
+      if (freshPct !== portfolio.completionPercent) {
+        portfolio.completionPercent = freshPct;
+        await Portfolio.findByIdAndUpdate(portfolio._id, { $set: { completionPercent: freshPct } });
+      }
+    }
+
     res.json({ user, portfolio });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

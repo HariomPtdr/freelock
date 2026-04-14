@@ -15,6 +15,31 @@ function isValidUrl(url) {
   try { new URL(url); return true } catch { return false }
 }
 
+// Must stay in sync with server/utils/profileCompletion.js
+function calcCompletion(role, p) {
+  if (!p) return 20
+  if (role === 'freelancer') {
+    let pct = 20
+    if (p.bio) pct += 15
+    if (p.skills && p.skills.length > 0) pct += 15
+    if (p.hourlyRate) pct += 10
+    if (p.githubUrl) pct += 10
+    if (p.linkedinUrl) pct += 5
+    if (p.portfolioUrl) pct += 5
+    if (p.projectSamples && p.projectSamples.length > 0) pct += 10
+    if (p.resumeUrl) pct += 10
+    return Math.min(100, pct)
+  } else {
+    let pct = 20
+    if (p.bio) pct += 20
+    if (p.companyName) pct += 15
+    if (p.industry) pct += 15
+    if (p.linkedinUrl) pct += 15
+    if (p.paymentVerified) pct += 15
+    return Math.min(100, pct)
+  }
+}
+
 // Defined at module level so React never unmounts/remounts inputs on re-render
 function Field({ label, hint, required, bonus, error, children }) {
   return (
@@ -583,10 +608,11 @@ export default function ProfileSetup() {
     api.get('/api/auth/me').then(({ data }) => {
       const p = data.portfolio
       setPortfolio(p)
-      const pct = p?.completionPercent ?? 20
+      // Always calculate from actual fields — never trust the stored completionPercent
+      const pct = calcCompletion(data.user?.role || user?.role, p)
       setCompletion(pct)
       localStorage.setItem('profileCompletion', String(pct))
-      // Start in edit mode if profile is brand new (no bio yet)
+      window.dispatchEvent(new Event('profileUpdated'))
       setMode(!p?.bio ? 'edit' : 'view')
     }).catch(() => {
       setMode('edit')
@@ -595,7 +621,10 @@ export default function ProfileSetup() {
 
   const handleSaved = (updatedPortfolio) => {
     setPortfolio(updatedPortfolio)
-    setCompletion(updatedPortfolio.completionPercent || 20)
+    const pct = calcCompletion(user?.role, updatedPortfolio)
+    setCompletion(pct)
+    localStorage.setItem('profileCompletion', String(pct))
+    window.dispatchEvent(new Event('profileUpdated'))
     setMode('view')
   }
 
