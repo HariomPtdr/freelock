@@ -18,7 +18,7 @@ export default function PostJob() {
         skills: form.skills.split(',').map(s => s.trim()).filter(Boolean)
       })
       toast.success('Job posted!')
-      setTimeout(() => navigate('/client/dashboard'), 1000)
+      setTimeout(() => navigate('/dashboard/client'), 1000)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to post job')
     } finally { setLoading(false) }

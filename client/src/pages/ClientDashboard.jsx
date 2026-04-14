@@ -49,8 +49,8 @@ export default function ClientDashboard() {
             <p className="text-slate-500 text-sm">Manage your contracts and jobs</p>
           </div>
           <div className="flex gap-2">
-            <Link to="/browse" className="border border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors">Find Talent</Link>
-            <Link to="/post-job" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">+ Post Job</Link>
+            <Link to="/freelancers" className="border border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors">Find Talent</Link>
+            <Link to="/jobs/post" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">+ Post Job</Link>
           </div>
         </div>
 
@@ -121,7 +121,7 @@ export default function ClientDashboard() {
           <h2 className="text-lg font-bold text-slate-800 mb-3">My Posted Jobs</h2>
           {jobs.length === 0
             ? <div className="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400">
-                No jobs yet. <Link to="/post-job" className="text-indigo-600">Post your first job</Link>
+                No jobs yet. <Link to="/jobs/post" className="text-indigo-600">Post your first job</Link>
               </div>
             : jobs.map(j => (
               <div key={j._id} className="bg-white rounded-xl border border-slate-200 p-4 mb-3 flex items-center justify-between">

@@ -17,7 +17,7 @@ export default function Register() {
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
       toast.success('Account created!')
-      setTimeout(() => navigate('/profile-setup'), 500)
+      setTimeout(() => navigate('/profile/setup'), 500)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed')
     } finally {
@@ -76,7 +76,7 @@ export default function Register() {
         </form>
         <p className="mt-6 text-center text-slate-500 text-sm">
           Already have an account?{' '}
-          <Link to="/" className="text-indigo-600 font-medium hover:underline">Sign in</Link>
+          <Link to="/login" className="text-indigo-600 font-medium hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

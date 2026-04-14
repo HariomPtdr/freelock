@@ -6,13 +6,13 @@ export default function Navbar() {
 
   const logout = () => {
     localStorage.clear()
-    navigate('/')
+    navigate('/login')
   }
 
   const dashboardPath = user?.role === 'client'
-    ? '/client/dashboard'
+    ? '/dashboard/client'
     : user?.role === 'freelancer'
-    ? '/freelancer/dashboard'
+    ? '/dashboard/freelancer'
     : '/admin'
 
   return (
@@ -25,9 +25,9 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <Link to="/jobs" className="text-slate-600 hover:text-indigo-600 text-sm font-medium">Jobs</Link>
           {user.role === 'client' && (
-            <Link to="/browse" className="text-slate-600 hover:text-indigo-600 text-sm font-medium">Find Talent</Link>
+            <Link to="/freelancers" className="text-slate-600 hover:text-indigo-600 text-sm font-medium">Find Talent</Link>
           )}
-          <Link to="/profile-setup" className="text-slate-600 hover:text-indigo-600 text-sm font-medium">Profile</Link>
+          <Link to="/profile/setup" className="text-slate-600 hover:text-indigo-600 text-sm font-medium">Profile</Link>
           <div className="flex items-center gap-2 border-l pl-4">
             <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
               {user.name?.[0]?.toUpperCase()}

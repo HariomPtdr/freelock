@@ -17,8 +17,8 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(data.user))
       toast.success(`Welcome back, ${data.user.name}!`)
       setTimeout(() => {
-        if (data.user.role === 'client') navigate('/client/dashboard')
-        else if (data.user.role === 'freelancer') navigate('/freelancer/dashboard')
+        if (data.user.role === 'client') navigate('/dashboard/client')
+        else if (data.user.role === 'freelancer') navigate('/dashboard/freelancer')
         else navigate('/admin')
       }, 500)
     } catch (err) {

@@ -152,7 +152,7 @@ export default function ProfileSetup() {
               className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors">
               Save Profile
             </button>
-            <button onClick={() => navigate(user?.role === 'client' ? '/client/dashboard' : '/freelancer/dashboard')}
+            <button onClick={() => navigate(user?.role === 'client' ? '/dashboard/client' : '/dashboard/freelancer')}
               className="flex-1 border border-slate-300 text-slate-600 font-semibold py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
               Go to Dashboard
             </button>
