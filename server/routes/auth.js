@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const passport = require('passport');
-const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const User = require('../models/User');
 const Portfolio = require('../models/Portfolio');
 const auth = require('../middleware/auth');
@@ -12,49 +10,66 @@ const { calcCompletion } = require('../utils/profileCompletion');
 const FRONTEND_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 const BACKEND_URL = process.env.SERVER_URL || 'http://localhost:5001';
 
-passport.use(new GoogleStrategy(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${BACKEND_URL}/api/auth/google/callback`,
-  },
-  (accessToken, refreshToken, profile, done) => done(null, profile)
-));
+// GET /api/auth/google — redirect to Google consent screen
+router.get('/google', (req, res) => {
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    redirect_uri: `${BACKEND_URL}/api/auth/google/callback`,
+    response_type: 'code',
+    scope: 'openid email profile',
+    access_type: 'offline',
+    prompt: 'select_account',
+  });
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+});
 
-// GET /api/auth/google
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+// GET /api/auth/google/callback — exchange code, find/create user, redirect to frontend
+router.get('/google/callback', async (req, res) => {
+  const { code, error } = req.query;
+  if (error || !code) return res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
 
-// GET /api/auth/google/callback
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: `${FRONTEND_URL}/login?error=google_failed` }),
-  async (req, res) => {
-    try {
-      const profile = req.user;
-      const email = profile.emails[0].value;
-      const name = profile.displayName;
-      const googleId = profile.id;
+  try {
+    // Exchange auth code for access token
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: `${BACKEND_URL}/api/auth/google/callback`,
+        grant_type: 'authorization_code',
+      }),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) return res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
 
-      let user = await User.findOne({ $or: [{ googleId }, { email }] });
+    // Fetch Google profile
+    const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await profileRes.json();
+    const { id: googleId, email, name } = profile;
 
-      if (user) {
-        if (!user.googleId) { user.googleId = googleId; await user.save(); }
-        const token = jwt.sign({ id: user._id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        const userParam = encodeURIComponent(JSON.stringify({ id: user._id, name: user.name, email: user.email, role: user.role, rating: user.rating || 0 }));
-        return res.redirect(`${FRONTEND_URL}/auth/callback?token=${token}&user=${userParam}`);
-      }
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
 
-      // New Google user — issue a short-lived pending token, redirect to role picker
-      const pending = jwt.sign({ googleId, email, name }, process.env.JWT_SECRET, { expiresIn: '10m' });
-      return res.redirect(`${FRONTEND_URL}/auth/google/complete?pending=${encodeURIComponent(pending)}`);
-    } catch (err) {
-      console.error('Google callback error:', err.message);
-      res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+    if (user) {
+      if (!user.googleId) { user.googleId = googleId; await user.save(); }
+      const token = jwt.sign({ id: user._id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      const userParam = encodeURIComponent(JSON.stringify({ id: user._id, name: user.name, email: user.email, role: user.role, rating: user.rating || 0 }));
+      return res.redirect(`${FRONTEND_URL}/auth/callback?token=${token}&user=${userParam}`);
     }
-  }
-);
 
-// POST /api/auth/google/complete — new Google users select their role
+    // New user — short-lived pending token, send to role picker
+    const pending = jwt.sign({ googleId, email, name }, process.env.JWT_SECRET, { expiresIn: '10m' });
+    return res.redirect(`${FRONTEND_URL}/auth/google/complete?pending=${encodeURIComponent(pending)}`);
+  } catch (err) {
+    console.error('Google OAuth error:', err.message);
+    res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+  }
+});
+
+// POST /api/auth/google/complete — new Google users pick their role
 router.post('/google/complete', async (req, res) => {
   try {
     const { pendingToken, role } = req.body;
