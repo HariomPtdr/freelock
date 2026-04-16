@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../api'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
   const [disputes, setDisputes] = useState([])
@@ -31,7 +31,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
       <div className="max-w-5xl mx-auto p-6">
         <h1 className="text-xl font-semibold text-zinc-900 mb-5">Admin Dashboard</h1>

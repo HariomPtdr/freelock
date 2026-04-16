@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { calcCompletion } from '../utils/profileCompletion'
 
 const FILE_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001'
@@ -67,7 +67,6 @@ export default function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
       <div className="max-w-5xl mx-auto p-6">
         {/* Header */}
@@ -77,9 +76,6 @@ export default function ClientDashboard() {
             <p className="text-zinc-500 text-sm">Manage your contracts and jobs</p>
           </div>
           <div className="flex gap-2">
-            <Link to="/freelancers" className="border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors">
-              Find Talent
-            </Link>
             <Link to="/jobs/post" className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">
               + Post Job
             </Link>

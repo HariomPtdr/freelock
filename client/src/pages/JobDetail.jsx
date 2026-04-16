@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 const profileCompletion = () => parseInt(localStorage.getItem('profileCompletion') || '0', 10)
 
@@ -38,6 +38,9 @@ export default function JobDetail() {
   const [actionLoading, setActionLoading] = useState(null)
   const [schedulingBidId, setSchedulingBidId] = useState(null)
   const [scheduledAt, setScheduledAt] = useState('')
+  const [demoModal, setDemoModal] = useState(null)
+  const [demoForm, setDemoForm] = useState({ message: '', proposedAt: '' })
+  const [demoLoading, setDemoLoading] = useState(false)
 
   const reload = () =>
     api.get(`/api/jobs/${id}`)
@@ -84,6 +87,18 @@ export default function JobDetail() {
     } finally { setActionLoading(null) }
   }
 
+  const sendDemoRequest = async () => {
+    if (!demoForm.message) return toast.error('Please describe what you want to see')
+    setDemoLoading(true)
+    try {
+      await api.post('/api/demos/request', { freelancerId: demoModal._id, message: demoForm.message, proposedAt: demoForm.proposedAt })
+      toast.success('Demo request sent!')
+      setDemoModal(null)
+      setDemoForm({ message: '', proposedAt: '' })
+    } catch { toast.error('Failed to send demo request') }
+    finally { setDemoLoading(false) }
+  }
+
   const handleNegotiate = async (bidId) => {
     setActionLoading(bidId + 'negotiate')
     try {
@@ -124,7 +139,6 @@ export default function JobDetail() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
       <div className="max-w-3xl mx-auto p-6">
 
@@ -288,6 +302,10 @@ export default function JobDetail() {
                             className="bg-zinc-900 hover:bg-zinc-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors">
                             {isLoading('shortlist') ? '...' : 'Shortlist'}
                           </button>
+                          <button onClick={() => setDemoModal(b.freelancer)}
+                            className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                            Request Demo
+                          </button>
                           <button onClick={() => action(b._id, 'reject')} disabled={isLoading('reject')}
                             className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors">
                             Reject
@@ -363,6 +381,39 @@ export default function JobDetail() {
           </div>
         )}
       </div>
+
+      {/* Demo Request Modal */}
+      {demoModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl border border-zinc-200 shadow-xl p-6 w-full max-w-md">
+            <h2 className="text-base font-semibold text-zinc-900 mb-1">Request Demo</h2>
+            <p className="text-sm text-zinc-500 mb-4">from {demoModal.name}</p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-zinc-700 mb-1.5 block">What do you want to see?</label>
+                <textarea value={demoForm.message} onChange={e => setDemoForm({ ...demoForm, message: e.target.value })} rows={3}
+                  className="w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-400 transition-colors"
+                  placeholder="e.g. I want to see your approach to this project and past similar work" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-zinc-700 mb-1.5 block">Proposed Meeting Time</label>
+                <input type="datetime-local" value={demoForm.proposedAt} onChange={e => setDemoForm({ ...demoForm, proposedAt: e.target.value })}
+                  className="w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-400 transition-colors" />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={sendDemoRequest} disabled={demoLoading}
+                  className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50">
+                  {demoLoading ? 'Sending...' : 'Send Request'}
+                </button>
+                <button onClick={() => { setDemoModal(null); setDemoForm({ message: '', proposedAt: '' }) }}
+                  className="flex-1 border border-zinc-200 text-zinc-600 font-medium py-2.5 rounded-lg text-sm hover:bg-zinc-50 transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

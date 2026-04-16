@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 const FILE_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 
@@ -40,7 +40,6 @@ export default function FreelancerBrowse() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
       <div className="max-w-5xl mx-auto p-6">
         <h1 className="text-xl font-semibold text-zinc-900 mb-5">Find Freelancers</h1>

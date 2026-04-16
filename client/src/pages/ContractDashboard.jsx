@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 const statusColors = {
   pending_deposit: 'bg-zinc-100 text-zinc-500',
@@ -127,7 +127,6 @@ export default function ContractDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}

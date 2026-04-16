@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { computeBadges, BADGE_COLORS } from '../utils/badges'
 
 const FILE_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001'
@@ -135,7 +135,6 @@ export default function FreelancerProfile() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
 
       {/* Cover */}

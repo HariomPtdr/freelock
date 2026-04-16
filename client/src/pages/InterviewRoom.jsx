@@ -3,7 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import SimplePeer from 'simple-peer/simplepeer.min.js'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 
@@ -183,7 +183,6 @@ export default function InterviewRoom() {
 
   return (
     <div className="min-h-screen bg-zinc-100 flex flex-col">
-      <Toaster />
       <Navbar />
 
       <div className="max-w-5xl mx-auto w-full p-4 flex-1 flex flex-col gap-4">

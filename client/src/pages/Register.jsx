@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 
@@ -120,7 +120,6 @@ export default function Register() {
   if (step === 'role') {
     return (
       <div className="min-h-screen bg-zinc-100 flex flex-col items-center justify-center p-4">
-        <Toaster />
 
         <div key={`head-${step}`} className={`mb-8 text-center ${hx}`}>
           <div className="text-xl font-bold text-zinc-900 tracking-tight">FreeLock</div>
@@ -192,7 +191,6 @@ export default function Register() {
   // ── Step 2: Registration form ──────────────────────────────────────────
   return (
     <div className="min-h-screen bg-zinc-100 flex flex-col items-center justify-center p-4 py-10">
-      <Toaster />
 
       <div key={`head-${step}`} className={`mb-8 text-center ${hx}`}>
         <div className="text-xl font-bold text-zinc-900 tracking-tight">FreeLock</div>

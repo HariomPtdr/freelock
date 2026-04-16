@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import api from '../api'
 
 export default function AuthCallback() {
@@ -59,7 +59,6 @@ export default function AuthCallback() {
 
   return (
     <div className="min-h-screen bg-zinc-100 flex items-center justify-center">
-      <Toaster position="top-center" />
       <div className="flex flex-col items-center gap-3">
         <div className="animate-spin h-6 w-6 border-2 border-zinc-900 border-t-transparent rounded-full" />
         <p className="text-sm text-zinc-500">

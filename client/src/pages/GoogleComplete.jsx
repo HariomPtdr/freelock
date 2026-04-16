@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../api'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 export default function GoogleComplete() {
   const [searchParams] = useSearchParams()
@@ -42,7 +42,6 @@ export default function GoogleComplete() {
 
   return (
     <div className="min-h-screen bg-zinc-100 flex flex-col items-center justify-center p-4">
-      <Toaster />
 
       <div className="mb-8 text-center">
         <div className="text-xl font-bold text-zinc-900 tracking-tight">FreeLock</div>

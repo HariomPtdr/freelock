@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
 import SkillSelector from '../components/SkillSelector'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import PaymentVerifyModal from '../components/PaymentVerifyModal'
 import {
   FREELANCER_BADGES, CLIENT_BADGES, BADGE_COLORS,
@@ -1153,7 +1153,6 @@ export default function ProfileSetup() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
 
       {/* Loading state */}

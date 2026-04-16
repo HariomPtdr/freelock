@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
 import PaymentVerifyModal from '../components/PaymentVerifyModal'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { calcCompletion } from '../utils/profileCompletion'
 
 export default function PaymentSettings() {
@@ -59,7 +59,6 @@ export default function PaymentSettings() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
       {showVerifyModal && (
         <PaymentVerifyModal onClose={() => setShowVerifyModal(false)} onVerified={handleVerified} />

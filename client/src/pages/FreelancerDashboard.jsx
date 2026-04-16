@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { calcCompletion } from '../utils/profileCompletion'
 
 const FILE_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001'
@@ -61,7 +61,6 @@ export default function FreelancerDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <Toaster />
       <Navbar />
       <div className="max-w-5xl mx-auto p-6">
         {/* Header */}

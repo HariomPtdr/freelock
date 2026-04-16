@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -10,7 +11,6 @@ import JobDetail from './pages/JobDetail'
 import PostJob from './pages/PostJob'
 import ContractDashboard from './pages/ContractDashboard'
 import NegotiationRoom from './pages/NegotiationRoom'
-import FreelancerBrowse from './pages/FreelancerBrowse'
 import FreelancerProfile from './pages/FreelancerProfile'
 import ClientProfile from './pages/ClientProfile'
 import ChatRoom from './pages/ChatRoom'
@@ -31,6 +31,24 @@ function DashboardRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#ffffff',
+            color: '#09090b',
+            border: '1px solid #e4e4e7',
+            borderRadius: '10px',
+            fontSize: '13px',
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif",
+            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+            padding: '10px 14px',
+          },
+          success: { iconTheme: { primary: '#10b981', secondary: '#ffffff' } },
+          error: { iconTheme: { primary: '#ef4444', secondary: '#ffffff' } },
+          duration: 3000,
+        }}
+      />
       <Routes>
         {/* Public */}
         <Route path="/login" element={<Login />} />
@@ -56,7 +74,6 @@ export default function App() {
         <Route path="/jobs/:id" element={<ProtectedRoute><JobDetail /></ProtectedRoute>} />
 
         {/* Freelancers */}
-        <Route path="/freelancers" element={<ProtectedRoute role="client"><FreelancerBrowse /></ProtectedRoute>} />
         <Route path="/freelancers/:userId" element={<ProtectedRoute><FreelancerProfile /></ProtectedRoute>} />
         <Route path="/clients/:userId" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
 
