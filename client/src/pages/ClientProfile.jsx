@@ -202,23 +202,6 @@ export default function ClientProfile() {
             <p className="text-zinc-600 mt-5 text-sm leading-relaxed border-t border-zinc-100 pt-4">{profile.bio}</p>
           )}
 
-          {/* Links */}
-          {(profile.linkedinUrl || profile.websiteUrl) && (
-            <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-zinc-100">
-              {profile.linkedinUrl && (
-                <a href={profile.linkedinUrl} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors border border-zinc-200 hover:border-zinc-400 rounded-lg px-3 py-1.5">
-                  {Icons.linkedin} LinkedIn
-                </a>
-              )}
-              {profile.websiteUrl && (
-                <a href={profile.websiteUrl} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors border border-zinc-200 hover:border-zinc-400 rounded-lg px-3 py-1.5">
-                  {Icons.globe} Website
-                </a>
-              )}
-            </div>
-          )}
         </div>
 
         {/* ── Stats ── */}
@@ -239,10 +222,10 @@ export default function ClientProfile() {
         </div>
 
         {/* ── Details ── */}
-        {(profile.location || profile.yearsHiring || profile.preferredComm || (isBusiness && profile.companySize) || (isBusiness && profile.industry)) && (
+        {(profile.location || profile.yearsHiring || profile.preferredComm || (isBusiness && profile.companySize) || (isBusiness && profile.industry) || profile.linkedinUrl || profile.websiteUrl) && (
           <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
             <h2 className="text-sm font-semibold text-zinc-800 mb-4">Details</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               {profile.location && (
                 <InfoRow icon={Icons.location} label="Location" value={profile.location} />
               )}
@@ -257,6 +240,24 @@ export default function ClientProfile() {
               )}
               {isBusiness && profile.industry && (
                 <InfoRow icon={Icons.industry} label="Industry" value={profile.industry} />
+              )}
+              {profile.linkedinUrl && (
+                <a href={profile.linkedinUrl} target="_blank" rel="noreferrer" className="flex items-center gap-4 border border-zinc-200 rounded-xl px-4 py-3 hover:border-zinc-300 transition-colors">
+                  <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">{Icons.linkedin}</div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-zinc-400 mb-0.5">LinkedIn</p>
+                    <p className="text-sm font-semibold text-zinc-900 truncate">{profile.linkedinUrl}</p>
+                  </div>
+                </a>
+              )}
+              {profile.websiteUrl && (
+                <a href={profile.websiteUrl} target="_blank" rel="noreferrer" className="flex items-center gap-4 border border-zinc-200 rounded-xl px-4 py-3 hover:border-zinc-300 transition-colors">
+                  <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">{Icons.globe}</div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-zinc-400 mb-0.5">Website</p>
+                    <p className="text-sm font-semibold text-zinc-900 truncate">{profile.websiteUrl}</p>
+                  </div>
+                </a>
               )}
             </div>
           </div>

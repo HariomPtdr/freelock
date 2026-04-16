@@ -597,7 +597,7 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
           portfolio?.location || portfolio?.websiteUrl || portfolio?.yearsHiring) && (
           <div className="bg-white rounded-xl border border-zinc-200 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="flex flex-col gap-2">
               {portfolio?.githubUrl && (
                 <DetailRowCard icon={SetupIcons.github} label="GitHub">
                   <a href={portfolio.githubUrl} target="_blank" rel="noopener noreferrer"
