@@ -43,6 +43,26 @@ function isValidUrl(url) {
 
 // ─── SVG icon set (used in DetailRowCard) ────────────────────────────────────
 const SetupIcons = {
+  person: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  ),
+  building: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+  ),
+  phone: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.069A1 1 0 0121 8.867v6.266a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+    </svg>
+  ),
+  sparkles: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+    </svg>
+  ),
   github: (
     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
@@ -597,7 +617,7 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
           portfolio?.location || portfolio?.websiteUrl || portfolio?.yearsHiring) && (
           <div className="bg-white rounded-xl border border-zinc-200 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Details</h3>
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {portfolio?.githubUrl && (
                 <DetailRowCard icon={SetupIcons.github} label="GitHub">
                   <a href={portfolio.githubUrl} target="_blank" rel="noopener noreferrer"
@@ -978,40 +998,32 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
               Who are you? <span className="text-red-500">*</span>
             </label>
             <p className="text-xs text-zinc-400 mb-3">This helps freelancers understand your context before applying.</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-2">
               {[
-                {
-                  value: 'individual',
-                  icon: '👤',
-                  title: 'Individual',
-                  sub: 'Building something for yourself, a side project, or a personal idea',
-                },
-                {
-                  value: 'business',
-                  icon: '🏢',
-                  title: 'Business',
-                  sub: 'A startup, company, or agency hiring on behalf of an organisation',
-                },
+                { value: 'individual', icon: SetupIcons.person, title: 'Individual', sub: 'Building something for yourself, a side project, or a personal idea' },
+                { value: 'business',   icon: SetupIcons.building, title: 'Business', sub: 'A startup, company, or agency hiring on behalf of an organisation' },
               ].map(opt => {
                 const selected = form.clientType === opt.value
                 return (
                   <button key={opt.value} type="button"
                     onClick={() => { setForm({ ...form, clientType: opt.value }); setErrors({ ...errors, clientType: '' }) }}
-                    className={`text-left border-2 rounded-xl p-4 transition-all ${
-                      selected
-                        ? 'border-zinc-900 bg-zinc-50'
-                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                    className={`text-left border rounded-xl px-4 py-3 transition-all flex items-center gap-4 ${
+                      selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300 bg-white'
                     }`}>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xl">{opt.icon}</span>
-                      <span className={`text-sm font-semibold ${selected ? 'text-zinc-900' : 'text-zinc-700'}`}>{opt.title}</span>
-                      {selected && (
-                        <svg className="w-4 h-4 text-zinc-900 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                      selected ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'
+                    }`}>
+                      {opt.icon}
                     </div>
-                    <p className="text-xs text-zinc-500 leading-relaxed">{opt.sub}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold ${selected ? 'text-zinc-900' : 'text-zinc-700'}`}>{opt.title}</p>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-tight">{opt.sub}</p>
+                    </div>
+                    {selected && (
+                      <svg className="w-4 h-4 text-zinc-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
                   </button>
                 )
               })}
@@ -1142,17 +1154,29 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
             </Field>
 
             <Field label="Years hiring freelancers" bonus={isIndividual ? 15 : 10} error={errors.yearsHiring}>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-2">
                 {YEARS_HIRING_OPTIONS.map(opt => {
                   const selected = form.yearsHiring === opt.value
                   return (
                     <button key={opt.value} type="button"
                       onClick={() => setForm({ ...form, yearsHiring: opt.value })}
-                      className={`text-left border rounded-lg px-3 py-2.5 transition-all ${
-                        selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300'
+                      className={`text-left border rounded-xl px-4 py-3 transition-all flex items-center gap-4 ${
+                        selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300 bg-white'
                       }`}>
-                      <p className={`text-sm font-medium ${selected ? 'text-zinc-900' : 'text-zinc-700'}`}>{opt.label}</p>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-tight">{opt.sub}</p>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                        selected ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'
+                      }`}>
+                        {SetupIcons.clock}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${selected ? 'text-zinc-900' : 'text-zinc-700'}`}>{opt.label}</p>
+                        <p className="text-xs text-zinc-400 mt-0.5 leading-tight">{opt.sub}</p>
+                      </div>
+                      {selected && (
+                        <svg className="w-4 h-4 text-zinc-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                     </button>
                   )
                 })}
@@ -1160,17 +1184,30 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
             </Field>
 
             <Field label="Preferred communication style" bonus={isIndividual ? 10 : 5} error={errors.preferredComm}>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-col gap-2">
                 {COMM_OPTIONS.map(opt => {
+                  const commIcons = { async: SetupIcons.chat, sync: SetupIcons.phone, flexible: SetupIcons.sparkles }
                   const selected = form.preferredComm === opt.value
                   return (
                     <button key={opt.value} type="button"
                       onClick={() => setForm({ ...form, preferredComm: opt.value })}
-                      className={`text-left border rounded-lg px-3 py-2.5 transition-all ${
-                        selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300'
+                      className={`text-left border rounded-xl px-4 py-3 transition-all flex items-center gap-4 ${
+                        selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300 bg-white'
                       }`}>
-                      <p className={`text-sm font-medium ${selected ? 'text-zinc-900' : 'text-zinc-700'}`}>{opt.label}</p>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-tight">{opt.sub}</p>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                        selected ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'
+                      }`}>
+                        {commIcons[opt.value]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${selected ? 'text-zinc-900' : 'text-zinc-700'}`}>{opt.label}</p>
+                        <p className="text-xs text-zinc-400 mt-0.5 leading-tight">{opt.sub}</p>
+                      </div>
+                      {selected && (
+                        <svg className="w-4 h-4 text-zinc-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                     </button>
                   )
                 })}
