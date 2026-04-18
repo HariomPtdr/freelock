@@ -9,40 +9,40 @@ export function calcCompletion(role, p) {
   if (!p) return 20
   if (role === 'freelancer') {
     let pct = 20
-    if (p.bio) pct += 20
-    if (p.skills && p.skills.length > 0) pct += 20
-    if (p.githubUrl) pct += 25
-    if (p.linkedinUrl) pct += 10
-    if (p.portfolioUrl) pct += 5
+    if (p.bio?.trim()) pct += 20
+    if (Array.isArray(p.skills) && p.skills.length > 0) pct += 20
+    if (p.githubUrl?.trim()) pct += 25
+    if (p.linkedinUrl?.trim()) pct += 10
+    if (p.portfolioUrl?.trim()) pct += 5
     return Math.min(100, pct)
   } else {
     if (p.clientType === 'individual') {
       let pct = 20
-      if (p.bio) pct += 15
-      if (p.avatarUrl) pct += 15
-      if (p.location) pct += 15
-      if (p.yearsHiring) pct += 15
-      if (p.linkedinUrl) pct += 10
-      if (p.preferredComm) pct += 10
+      if (p.bio?.trim()) pct += 15
+      if (p.avatarUrl?.trim()) pct += 15
+      if (p.location?.trim()) pct += 15
+      if (p.yearsHiring?.trim()) pct += 15
+      if (p.linkedinUrl?.trim()) pct += 10
+      if (p.preferredComm?.trim()) pct += 10
       if (p.paymentVerified) pct += 10
       return Math.min(100, pct)
     } else if (p.clientType === 'business') {
       let pct = 5
-      if (p.bio) pct += 10
-      if (p.avatarUrl) pct += 10
-      if (p.location) pct += 10
-      if (p.yearsHiring) pct += 10
-      if (p.companyName) pct += 10
-      if (p.industry) pct += 10
-      if (p.companySize) pct += 10
-      if (p.websiteUrl) pct += 5
-      if (p.linkedinUrl) pct += 5
-      if (p.preferredComm) pct += 5
+      if (p.bio?.trim()) pct += 10
+      if (p.avatarUrl?.trim()) pct += 10
+      if (p.location?.trim()) pct += 10
+      if (p.yearsHiring?.trim()) pct += 10
+      if (p.companyName?.trim()) pct += 10
+      if (p.industry?.trim()) pct += 10
+      if (p.companySize?.trim()) pct += 10
+      if (p.websiteUrl?.trim()) pct += 5
+      if (p.linkedinUrl?.trim()) pct += 5
+      if (p.preferredComm?.trim()) pct += 5
       if (p.paymentVerified) pct += 10
       return Math.min(100, pct)
     } else {
       let pct = 20
-      if (p.bio) pct += 10
+      if (p.bio?.trim()) pct += 10
       return Math.min(30, pct)
     }
   }

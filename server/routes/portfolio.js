@@ -24,7 +24,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 router.get('/:userId', async (req, res) => {
   try {
     const portfolio = await Portfolio.findOne({ user: req.params.userId })
-      .populate('user', 'name role rating totalJobsCompleted onTimeDeliveryRate disputeRate');
+      .populate('user', 'name role rating totalJobsCompleted onTimeDeliveryRate disputeRate verificationStatus');
     if (!portfolio) return res.status(404).json({ message: 'Portfolio not found' });
     res.json(portfolio);
   } catch (err) {
@@ -43,7 +43,7 @@ router.post('/update', auth, async (req, res) => {
     } = req.body;
     // Fetch current portfolio to include existing projectSamples/resumeUrl in completion calc
     const existing = await Portfolio.findOne({ user: req.user.id });
-    const resolvedRole = existing?.role || req.user.role;
+    const resolvedRole = req.user.role || existing?.role;
     const update = {
       bio, skills, githubUrl, linkedinUrl, portfolioUrl, availability,
       companyName, industry,
@@ -221,6 +221,33 @@ router.post('/payout-details', auth, async (req, res) => {
   }
 });
 
+// Retry all pending-payout milestones for a freelancer (called after they set up payout details)
+async function retryPendingPayouts(freelancerId) {
+  try {
+    const Milestone = require('../models/Milestone');
+    const Transaction = require('../models/Transaction');
+    const { initiateFreelancerPayout } = require('../services/releaseService');
+    const pending = await Milestone.find({ freelancer: freelancerId, payoutStatus: 'pending', status: 'released' });
+
+    for (const m of pending) {
+      const txExists = await Transaction.findOne({ milestone: m._id });
+      if (txExists) {
+        // Wallet already credited — just mark as processed so UI updates
+        await Milestone.findByIdAndUpdate(m._id, {
+          payoutStatus: 'processed',
+          payoutId: txExists.payoutId || 'payout_credited_' + Date.now()
+        });
+      } else {
+        // No transaction yet — initiate fresh payout (will credit wallet)
+        await initiateFreelancerPayout(m);
+      }
+    }
+    if (pending.length > 0) console.log(`[payout] Processed ${pending.length} pending payout(s) for freelancer ${freelancerId}`);
+  } catch (err) {
+    console.error('[payout] retryPendingPayouts error:', err.message);
+  }
+}
+
 // POST /api/portfolio/verify-payout — freelancer: create Razorpay Contact + Fund Account to validate UPI/bank
 router.post('/verify-payout', auth, async (req, res) => {
   try {
@@ -245,6 +272,19 @@ router.post('/verify-payout', auth, async (req, res) => {
       }
     } else {
       return res.status(400).json({ message: 'Select a payout method first' });
+    }
+
+    // In test mode skip the live Razorpay calls and mark verified directly
+    if (isTestMode()) {
+      const updated = await Portfolio.findOneAndUpdate(
+        { user: req.user.id },
+        { $set: { paymentVerified: true, razorpayContactId: 'contact_test', razorpayFundAccountId: 'fa_test' } },
+        { new: true }
+      );
+      const completion = calcCompletion(req.user.role, updated.toObject());
+      await Portfolio.findOneAndUpdate({ user: req.user.id }, { $set: { completionPercent: completion } });
+      await retryPendingPayouts(req.user.id);
+      return res.json({ paymentVerified: true, completionPercent: completion });
     }
 
     const razorpay = razorpayClient();
@@ -284,6 +324,10 @@ router.post('/verify-payout', auth, async (req, res) => {
     );
     const completion = calcCompletion('freelancer', updated.toObject());
     await Portfolio.findOneAndUpdate({ user: req.user.id }, { $set: { completionPercent: completion } });
+
+    // Auto-retry any pending payouts for this freelancer now that payout details are set
+    await retryPendingPayouts(req.user.id);
+
     res.json({ paymentVerified: true, completionPercent: completion });
   } catch (err) {
     // Razorpay validation errors have a specific shape

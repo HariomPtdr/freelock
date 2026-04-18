@@ -248,7 +248,7 @@ export default function PaymentGate() {
               </div>
               <div className="p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
                 <p className="text-xs text-emerald-700 font-medium">
-                  ✓ Advance auto-released to freelancer after you approve Phase 1
+                  ✓ Advance released to freelancer on final phase approval or if you exit early
                 </p>
               </div>
             </div>
@@ -350,7 +350,7 @@ export default function PaymentGate() {
                 <p className="text-sm font-semibold text-amber-800">Advance held securely in escrow</p>
                 <ul className="text-xs text-amber-700 mt-1.5 space-y-1">
                   <li>✓ Funds are held by SafeLancer, not sent to the freelancer yet</li>
-                  <li>✓ Automatically released after you approve Phase 1</li>
+                  <li>✓ Released to freelancer on final phase approval or if you exit the project early</li>
                   <li>✓ Dispute protection if work doesn't meet requirements</li>
                   <li>✓ Freelancers can only see and apply to paid, published jobs</li>
                 </ul>

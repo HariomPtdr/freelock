@@ -75,6 +75,7 @@ export default function PaymentSettings() {
       const pct = data.completionPercent
       localStorage.setItem('profileCompletion', String(pct))
       window.dispatchEvent(new Event('profileUpdated'))
+      window.dispatchEvent(new Event('payoutsProcessed'))
       toast.success('Payout account verified!')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Verification failed')

@@ -60,11 +60,19 @@ export default function FreelancerDashboard() {
   const [contracts, setContracts] = useState([])
   const [applications, setApplications] = useState([])
   const [portfolio, setPortfolio] = useState(null)
+  const [verificationStatus, setVerificationStatus] = useState('pending')
   const [walletBalance, setWalletBalance] = useState(0)
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const navigate = useNavigate()
+
+  const refreshEarnings = () => {
+    api.get('/api/transactions/my').then(({ data }) => {
+      setWalletBalance(data.walletBalance)
+      setTransactions(data.transactions)
+    }).catch(() => {})
+  }
 
   useEffect(() => {
     Promise.all([
@@ -76,10 +84,16 @@ export default function FreelancerDashboard() {
       setContracts(c.data)
       setApplications(a.data)
       setPortfolio(me.data.portfolio)
+      setVerificationStatus(me.data.user?.verificationStatus || 'pending')
       setWalletBalance(tx.data.walletBalance)
       setTransactions(tx.data.transactions)
     }).catch(() => toast.error('Failed to load'))
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('payoutsProcessed', refreshEarnings)
+    return () => window.removeEventListener('payoutsProcessed', refreshEarnings)
   }, [])
 
   const activeContracts = contracts.filter(c => ['active', 'pending_advance'].includes(c.status))
@@ -132,8 +146,29 @@ export default function FreelancerDashboard() {
                 </div>
             }
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                 <span className="text-sm font-semibold text-white">{user.name}</span>
+                {verificationStatus === 'approved' && (
+                  <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    Verified
+                  </span>
+                )}
+                {verificationStatus === 'rejected' && (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(239,68,68,0.10)', color: '#f87171', border: '1px solid rgba(239,68,68,0.20)' }}>
+                    Verification Rejected
+                  </span>
+                )}
+                {verificationStatus === 'pending' && (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.18)' }}>
+                    Pending Verification
+                  </span>
+                )}
                 {portfolio?.availability && (
                   <span className="badge badge-purple capitalize">{portfolio.availability}</span>
                 )}
@@ -165,8 +200,8 @@ export default function FreelancerDashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <StatCard label="Wallet Balance" value={walletBalance} accent />
-          <StatCard label="Total Earned" value={totalEarned} />
+          <StatCard label="Wallet Balance" value={`₹${walletBalance}`} accent />
+          <StatCard label="Total Earned" value={`₹${totalEarned}`} />
           <StatCard label="Active Contracts" value={activeContracts.length} />
           <StatCard label="All Contracts" value={contracts.length} />
         </div>

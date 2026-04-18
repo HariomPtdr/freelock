@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 const SKILL_LIST = [
   // Frontend
@@ -31,6 +32,7 @@ const SKILL_LIST = [
 export default function SkillSelector({ selected = [], onChange, maxSkills = 15, error }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 })
   const containerRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -59,6 +61,17 @@ export default function SkillSelector({ selected = [], onChange, maxSkills = 15,
 
   const remove = (skill) => onChange(selected.filter(s => s !== skill))
 
+  const updateDropdownPos = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      setDropdownPos({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      })
+    }
+  }
+
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false)
@@ -66,6 +79,17 @@ export default function SkillSelector({ selected = [], onChange, maxSkills = 15,
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  useEffect(() => {
+    if (open) updateDropdownPos()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onScroll = () => updateDropdownPos()
+    window.addEventListener('scroll', onScroll, true)
+    return () => window.removeEventListener('scroll', onScroll, true)
+  }, [open])
 
   return (
     <div ref={containerRef} className="relative">
@@ -110,9 +134,20 @@ export default function SkillSelector({ selected = [], onChange, maxSkills = 15,
         />
       </div>
 
-      {/* Dropdown */}
-      {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-xl shadow-lg overflow-hidden" style={{ background: '#111113', border: '1px solid rgba(255,104,3,0.10)' }}>
+      {/* Dropdown rendered via portal to escape stacking context from backdrop-filter */}
+      {open && createPortal(
+        <div
+          className="rounded-xl shadow-lg overflow-hidden"
+          style={{
+            position: 'absolute',
+            top: dropdownPos.top,
+            left: dropdownPos.left,
+            width: dropdownPos.width,
+            zIndex: 9999,
+            background: '#111113',
+            border: '1px solid rgba(255,104,3,0.10)',
+          }}
+        >
           {displayList.length === 0 && !showCreate && trimmed && (
             <p className="px-4 py-3 text-sm italic" style={{ color: '#6b5445' }}>No matching skills found</p>
           )}
@@ -152,7 +187,8 @@ export default function SkillSelector({ selected = [], onChange, maxSkills = 15,
               Maximum {maxSkills} skills reached
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="flex items-center justify-between mt-1.5">

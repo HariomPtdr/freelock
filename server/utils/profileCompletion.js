@@ -16,41 +16,41 @@
 function calcCompletion(role, data) {
   if (role === 'freelancer') {
     let pct = 20
-    if (data.bio) pct += 20
-    if (data.skills && data.skills.length > 0) pct += 20
-    if (data.githubUrl) pct += 25
-    if (data.linkedinUrl) pct += 10
-    if (data.portfolioUrl) pct += 5
+    if (data.bio?.trim()) pct += 20
+    if (Array.isArray(data.skills) && data.skills.length > 0) pct += 20
+    if (data.githubUrl?.trim()) pct += 25
+    if (data.linkedinUrl?.trim()) pct += 10
+    if (data.portfolioUrl?.trim()) pct += 5
     return Math.min(100, pct)
   } else {
     if (data.clientType === 'individual') {
       let pct = 20
-      if (data.bio) pct += 15
-      if (data.avatarUrl) pct += 15
-      if (data.location) pct += 15
-      if (data.yearsHiring) pct += 15
-      if (data.linkedinUrl) pct += 10
-      if (data.preferredComm) pct += 10
+      if (data.bio?.trim()) pct += 15
+      if (data.avatarUrl?.trim()) pct += 15
+      if (data.location?.trim()) pct += 15
+      if (data.yearsHiring?.trim()) pct += 15
+      if (data.linkedinUrl?.trim()) pct += 10
+      if (data.preferredComm?.trim()) pct += 10
       if (data.paymentVerified) pct += 10
       return Math.min(100, pct)
     } else if (data.clientType === 'business') {
       let pct = 5
-      if (data.bio) pct += 10
-      if (data.avatarUrl) pct += 10
-      if (data.location) pct += 10
-      if (data.yearsHiring) pct += 10
-      if (data.companyName) pct += 10
-      if (data.industry) pct += 10
-      if (data.companySize) pct += 10
-      if (data.websiteUrl) pct += 5
-      if (data.linkedinUrl) pct += 5
-      if (data.preferredComm) pct += 5
+      if (data.bio?.trim()) pct += 10
+      if (data.avatarUrl?.trim()) pct += 10
+      if (data.location?.trim()) pct += 10
+      if (data.yearsHiring?.trim()) pct += 10
+      if (data.companyName?.trim()) pct += 10
+      if (data.industry?.trim()) pct += 10
+      if (data.companySize?.trim()) pct += 10
+      if (data.websiteUrl?.trim()) pct += 5
+      if (data.linkedinUrl?.trim()) pct += 5
+      if (data.preferredComm?.trim()) pct += 5
       if (data.paymentVerified) pct += 10
       return Math.min(100, pct)
     } else {
       // clientType not yet chosen — show minimal base
       let pct = 20
-      if (data.bio) pct += 10
+      if (data.bio?.trim()) pct += 10
       return Math.min(30, pct)
     }
   }

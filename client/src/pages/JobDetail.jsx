@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
 import toast from 'react-hot-toast'
+import { calcCompletion } from '../utils/profileCompletion'
 
-const profileCompletion = () => parseInt(localStorage.getItem('profileCompletion') || '0', 10)
+// profileCompletion is kept for the initial render guard; overridden by fresh API value on mount
+const profileCompletionLocal = () => parseInt(localStorage.getItem('profileCompletion') || '0', 10)
 
 const STATUS_LABELS = {
   applied:            { label: 'Applied',      style: { background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.12)' } },
@@ -38,26 +40,62 @@ export default function JobDetail() {
 
   const [job, setJob] = useState(null)
   const [proposal, setProposal] = useState('')
+  const [discountPercent, setDiscountPercent] = useState(0)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState('All')
   const [actionLoading, setActionLoading] = useState(null)
+  const [verificationStatus, setVerificationStatus] = useState('pending')
+  const [freshCompletion, setFreshCompletion] = useState(profileCompletionLocal())
+  const [profileChecking, setProfileChecking] = useState(user.role === 'freelancer')
 
   const reload = () =>
     api.get(`/api/jobs/${id}`)
       .then(({ data }) => setJob(data))
       .catch(() => toast.error('Job not found'))
 
-  useEffect(() => { reload().finally(() => setLoading(false)) }, [id])
+  const refreshFreelancerProfile = useCallback(() => {
+    if (user.role !== 'freelancer') return Promise.resolve()
+    return api.get('/api/auth/me').then(({ data }) => {
+      setVerificationStatus(data.user?.verificationStatus || 'pending')
+      if (data.portfolio) {
+        const pct = calcCompletion(data.user?.role || 'freelancer', data.portfolio)
+        setFreshCompletion(pct)
+        localStorage.setItem('profileCompletion', String(pct))
+      } else {
+        setFreshCompletion(0)
+      }
+    }).catch(() => {})
+  }, [user.role])
+
+  useEffect(() => {
+    reload().finally(() => setLoading(false))
+    if (user.role === 'freelancer') {
+      setProfileChecking(true)
+      refreshFreelancerProfile().finally(() => setProfileChecking(false))
+    }
+  }, [id])
+
+  useEffect(() => {
+    window.addEventListener('profileUpdated', refreshFreelancerProfile)
+    return () => window.removeEventListener('profileUpdated', refreshFreelancerProfile)
+  }, [refreshFreelancerProfile])
 
   const handleApply = async (e) => {
     e.preventDefault()
     setSubmitting(true)
     try {
-      await api.post(`/api/jobs/${id}/apply`, { proposal })
+      await api.post(`/api/jobs/${id}/apply`, { proposal, discountPercent })
       toast.success('Application submitted!')
       await reload()
     } catch (err) {
+      // If backend says profile is incomplete, sync the real completion % so the
+      // banner shows and the form hides — no ghost "apply" state possible
+      if (err.response?.status === 403 && err.response?.data?.completionPercent !== undefined) {
+        const serverPct = err.response.data.completionPercent
+        setFreshCompletion(serverPct)
+        localStorage.setItem('profileCompletion', String(serverPct))
+      }
       toast.error(err.response?.data?.message || 'Failed to apply')
     } finally { setSubmitting(false) }
   }
@@ -276,7 +314,7 @@ export default function JobDetail() {
               })}
             </div>
             <div className="mt-3 px-4 py-3 rounded-xl flex items-center justify-between text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.10)' }}>
-              <span style={{ color: '#6b5445' }}>Advance payment (released after Phase 1):</span>
+              <span style={{ color: '#6b5445' }}>Advance payment (released on last phase or early exit):</span>
               <span className="font-bold" style={{ color: '#FF6803' }}>
                 {job.advancePercent || 10}% = ₹{Math.round(job.budget * (job.advancePercent || 10) / 100).toLocaleString()}
               </span>
@@ -318,7 +356,45 @@ export default function JobDetail() {
           <div className="dark-card p-6 mb-5">
             <SectionLabel text="Apply for this Job" />
             <p className="text-sm mb-4 -mt-2" style={{ color: '#6b5445' }}>Fixed budget: <span style={{ color: '#FF6803', fontWeight: 600 }}>₹{job.budget?.toLocaleString()}</span> — set by client</p>
-            {profileCompletion() < 100 ? (
+
+            {/* Verified-only block */}
+            {job.verifiedOnly && verificationStatus !== 'approved' && (
+              <div className="rounded-xl p-4 mb-4 flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.22)' }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.15)' }}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#f59e0b' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: '#f59e0b' }}>Verified Freelancers Only</p>
+                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#BFBFBF' }}>
+                    This client requires a SafeLancer-verified freelancer. Your account is currently <strong style={{ color: '#f59e0b' }}>pending verification</strong>. Once an admin approves your account, you will be able to apply.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Platform fee notice */}
+            <div className="rounded-xl p-3.5 mb-4 flex items-start gap-3" style={{ background: 'rgba(255,104,3,0.06)', border: '1px solid rgba(255,104,3,0.18)' }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,104,3,0.12)' }}>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-semibold" style={{ color: '#FF6803' }}>Platform Fee — 2% Deducted from Your Earnings</p>
+                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#BFBFBF' }}>
+                  SafeLancer charges a <span style={{ color: '#FF6803', fontWeight: 600 }}>2% platform fee</span> on the total project budget. You will receive{' '}
+                  <span style={{ color: '#FF6803', fontWeight: 600 }}>₹{Math.round(job.budget * 0.98).toLocaleString()}</span> out of the ₹{job.budget?.toLocaleString()} budget after the fee is deducted upon project completion.
+                </p>
+              </div>
+            </div>
+            {profileChecking ? (
+              <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.08)' }}>
+                <div className="w-4 h-4 rounded-full border-2 flex-shrink-0" style={{ borderColor: 'rgba(255,104,3,0.3)', borderTopColor: '#FF6803', animation: 'spin 0.8s linear infinite' }} />
+                <span className="text-xs" style={{ color: '#6b5445' }}>Checking profile…</span>
+              </div>
+            ) : freshCompletion < 100 ? (
               <div className="rounded-xl p-4" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.12)' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -329,9 +405,9 @@ export default function JobDetail() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold" style={{ color: '#F5EDE4' }}>Complete your profile to apply</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#6b5445' }}>Your profile is {profileCompletion()}% complete. You need 100% to apply for jobs.</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#6b5445' }}>Your profile is {freshCompletion}% complete. You need 100% to apply for jobs.</p>
                     <div className="w-full rounded-full h-1.5 mt-2.5 overflow-hidden" style={{ background: 'rgba(255,104,3,0.08)' }}>
-                      <div className="h-1.5 rounded-full transition-all" style={{ width: `${profileCompletion()}%`, background: 'linear-gradient(90deg, #FF6803, #AE3A02)' }} />
+                      <div className="h-1.5 rounded-full transition-all" style={{ width: `${freshCompletion}%`, background: 'linear-gradient(90deg, #FF6803, #AE3A02)' }} />
                     </div>
                   </div>
                   <Link to="/profile/setup"
@@ -349,6 +425,55 @@ export default function JobDetail() {
                     className="dark-input w-full"
                     placeholder="Describe your approach, experience, and why you're the right fit..." />
                 </div>
+
+                {/* Discount offer */}
+                <div className="rounded-xl p-4" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.15)' }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: '#F5EDE4' }}>Offer a Discount <span className="text-xs font-normal ml-1" style={{ color: '#6b5445' }}>(optional)</span></p>
+                      <p className="text-xs mt-0.5" style={{ color: '#6b5445' }}>Attract the client by offering a discount on the total budget</p>
+                    </div>
+                    <span className="text-lg font-bold" style={{ color: discountPercent > 0 ? '#FF6803' : '#6b5445' }}>
+                      {discountPercent}%
+                    </span>
+                  </div>
+                  <input
+                    type="range" min="0" max="50" step="1"
+                    value={discountPercent}
+                    onChange={e => setDiscountPercent(Number(e.target.value))}
+                    className="w-full accent-orange-500 h-1.5 rounded-full"
+                    style={{ accentColor: '#FF6803' }}
+                  />
+                  <div className="flex justify-between text-xs mt-1" style={{ color: '#6b5445' }}>
+                    <span>0% (no discount)</span>
+                    <span>50% max</span>
+                  </div>
+                  {discountPercent > 0 && (() => {
+                    const discounted = Math.round(job.budget * (1 - discountPercent / 100))
+                    const fee = Math.round(discounted * 0.02)
+                    const youGet = discounted - fee
+                    return (
+                      <div className="mt-3 pt-3 grid grid-cols-3 gap-2 text-center" style={{ borderTop: '1px solid rgba(255,104,3,0.10)' }}>
+                        <div>
+                          <p className="text-xs" style={{ color: '#6b5445' }}>Client pays</p>
+                          <p className="text-sm font-bold" style={{ color: '#10b981' }}>₹{discounted.toLocaleString()}</p>
+                          <p className="text-xs" style={{ color: '#6b5445' }}>was ₹{job.budget?.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs" style={{ color: '#6b5445' }}>Platform fee (2%)</p>
+                          <p className="text-sm font-bold" style={{ color: '#f87171' }}>−₹{fee.toLocaleString()}</p>
+                          <p className="text-xs" style={{ color: '#6b5445' }}>on discounted amt</p>
+                        </div>
+                        <div>
+                          <p className="text-xs" style={{ color: '#6b5445' }}>You receive</p>
+                          <p className="text-sm font-bold" style={{ color: '#FF6803' }}>₹{youGet.toLocaleString()}</p>
+                          <p className="text-xs" style={{ color: '#6b5445' }}>after fee</p>
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </div>
+
                 <button type="submit" disabled={submitting}
                   className="btn-purple w-full font-semibold py-2.5 rounded-xl text-sm disabled:opacity-50">
                   {submitting ? 'Submitting...' : 'Apply Now'}
@@ -368,6 +493,27 @@ export default function JobDetail() {
               </span>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: '#BFBFBF' }}>{myBid.proposal}</p>
+            {myBid.discountPercent > 0 && (() => {
+              const discounted = Math.round(job.budget * (1 - myBid.discountPercent / 100))
+              const fee = Math.round(discounted * 0.02)
+              const youGet = discounted - fee
+              return (
+                <div className="mt-3 pt-3 rounded-xl p-3 grid grid-cols-3 gap-2 text-center" style={{ borderTop: '1px solid rgba(255,104,3,0.10)', background: 'rgba(255,104,3,0.04)' }}>
+                  <div>
+                    <p className="text-xs" style={{ color: '#6b5445' }}>Discount offered</p>
+                    <p className="text-sm font-bold" style={{ color: '#FF6803' }}>{myBid.discountPercent}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs" style={{ color: '#6b5445' }}>Client pays</p>
+                    <p className="text-sm font-bold" style={{ color: '#10b981' }}>₹{discounted.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs" style={{ color: '#6b5445' }}>You receive</p>
+                    <p className="text-sm font-bold" style={{ color: '#FF6803' }}>₹{youGet.toLocaleString()}</p>
+                  </div>
+                </div>
+              )
+            })()}
             {myBid.status === 'rejected' && myBid.rejectionReason && (
               <p className="mt-2 text-xs" style={{ color: '#6b5445' }}>Reason: {myBid.rejectionReason}</p>
             )}
@@ -453,6 +599,24 @@ export default function JobDetail() {
                           </span>
                         </div>
                         <p className="text-sm leading-relaxed line-clamp-3" style={{ color: '#BFBFBF' }}>{b.proposal}</p>
+                        {b.discountPercent > 0 && (() => {
+                          const discounted = Math.round(job.budget * (1 - b.discountPercent / 100))
+                          const fee = Math.round(discounted * 0.02)
+                          return (
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ background: 'rgba(16,185,129,0.10)', color: '#10b981', border: '1px solid rgba(16,185,129,0.20)' }}>
+                                🏷 {b.discountPercent}% discount offered
+                              </span>
+                              <span className="text-xs" style={{ color: '#6b5445' }}>
+                                You pay <strong style={{ color: '#10b981' }}>₹{discounted.toLocaleString()}</strong>
+                                <span className="ml-1 line-through">₹{job.budget?.toLocaleString()}</span>
+                              </span>
+                              <span className="text-xs" style={{ color: '#6b5445' }}>
+                                · Platform fee <strong style={{ color: '#f87171' }}>₹{fee.toLocaleString()}</strong> (2% of discounted)
+                              </span>
+                            </div>
+                          )
+                        })()}
                         {b.status === 'rejected' && b.rejectionReason && (
                           <p className="text-xs mt-1" style={{ color: '#6b5445' }}>Reason: {b.rejectionReason}</p>
                         )}

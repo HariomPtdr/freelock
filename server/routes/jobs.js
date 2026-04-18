@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const Job = require('../models/Job');
 const Contract = require('../models/Contract');
 const Milestone = require('../models/Milestone');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 // Helper: generate milestones from contract + job phases
@@ -22,7 +23,7 @@ async function createMilestonesForContract(contract, phases = [], advancePercent
     milestoneNumber: 0,
     isAdvance: true,
     title: `Advance Payment (${advancePercent}%)`,
-    description: 'Initial advance — released after Phase 1 approval',
+    description: 'Initial advance — released to freelancer on final phase completion or when client exits early',
     amount: advanceAmount,
     deadline: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
     status: 'pending_deposit'
@@ -88,9 +89,11 @@ router.post('/', auth, async (req, res) => {
   try {
     if (req.user.role !== 'client') return res.status(403).json({ message: 'Clients only' });
     const Portfolio = require('../models/Portfolio');
+    const { calcCompletion: calcPct } = require('../utils/profileCompletion');
     const portfolio = await Portfolio.findOne({ user: req.user.id });
-    if (!portfolio || portfolio.completionPercent < 100) {
-      return res.status(403).json({ message: 'Complete your profile to 100% before posting a job', completionPercent: portfolio?.completionPercent || 0 });
+    const freshPct = portfolio ? calcPct(req.user.role, portfolio.toObject()) : 0;
+    if (!portfolio || freshPct < 100) {
+      return res.status(403).json({ message: 'Complete your profile to 100% before posting a job', completionPercent: freshPct });
     }
 
     const {
@@ -276,17 +279,31 @@ router.post('/:id/apply', auth, async (req, res) => {
   try {
     if (req.user.role !== 'freelancer') return res.status(403).json({ message: 'Freelancers only' });
     const Portfolio = require('../models/Portfolio');
+    const { calcCompletion } = require('../utils/profileCompletion');
     const portfolio = await Portfolio.findOne({ user: req.user.id });
-    if (!portfolio || portfolio.completionPercent < 100) {
-      return res.status(403).json({ message: 'Complete your profile to 100% before applying', completionPercent: portfolio?.completionPercent || 0 });
+    const freshCompletion = portfolio ? calcCompletion('freelancer', portfolio.toObject()) : 0;
+    if (!portfolio || freshCompletion < 100) {
+      // Sync the stored value so future calls are consistent
+      if (portfolio && freshCompletion !== portfolio.completionPercent) {
+        await Portfolio.findByIdAndUpdate(portfolio._id, { completionPercent: freshCompletion });
+      }
+      return res.status(403).json({ message: 'Complete your profile to 100% before applying', completionPercent: freshCompletion });
     }
     const job = await Job.findById(req.params.id);
     if (!job || job.status !== 'open') return res.status(400).json({ message: 'Job not available' });
 
+    if (job.verifiedOnly) {
+      const freelancer = await User.findById(req.user.id).select('verificationStatus');
+      if (!freelancer || freelancer.verificationStatus !== 'approved') {
+        return res.status(403).json({ message: 'This job requires a SafeLancer-verified freelancer. Complete your profile and wait for admin approval.' });
+      }
+    }
+
     const already = job.bids.find(b => b.freelancer.toString() === req.user.id);
     if (already) return res.status(400).json({ message: 'Already applied' });
 
-    job.bids.push({ freelancer: req.user.id, proposal: req.body.proposal });
+    const discountPercent = Math.min(50, Math.max(0, Number(req.body.discountPercent) || 0));
+    job.bids.push({ freelancer: req.user.id, proposal: req.body.proposal, discountPercent });
     await job.save();
     res.json(job);
   } catch (err) {
@@ -400,6 +417,93 @@ router.patch('/:id/applications/:bidId/reject', auth, async (req, res) => {
     if (req.body.reason) bid.rejectionReason = req.body.reason;
     await job.save();
     res.json(job);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// POST /api/jobs/:id/simulate-payment — test mode: instantly mark job as paid and open
+router.post('/:id/simulate-payment', auth, async (req, res) => {
+  try {
+    const isTestMode = require('../utils/isTestMode');
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ message: 'Job not found' });
+    if (job.client.toString() !== req.user.id) return res.status(403).json({ message: 'Not your job' });
+
+    if (!isTestMode()) return res.status(400).json({ message: 'Simulate-payment only available in test mode' });
+
+    job.paymentStatus = 'paid';
+    job.status = 'open';
+    await job.save();
+    res.json({ success: true, job });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// POST /api/jobs/:id/initiate-payment — create Razorpay order for advance milestone funding
+router.post('/:id/initiate-payment', auth, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ message: 'Job not found' });
+    if (job.client.toString() !== req.user.id) return res.status(403).json({ message: 'Not your job' });
+
+    const isTestMode = require('../utils/isTestMode');
+    if (isTestMode()) {
+      job.paymentStatus = 'paid';
+      job.status = 'open';
+      await job.save();
+      return res.json({
+        razorpayOrderId: 'order_test_' + Date.now(),
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'test',
+        amount: job.budget,
+        currency: 'INR',
+        isTestMode: true
+      });
+    }
+
+    const Razorpay = require('razorpay');
+    const razorpay = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET });
+    const order = await razorpay.orders.create({
+      amount: Math.round(job.budget * 100),
+      currency: 'INR',
+      receipt: `job_${job._id}_${Date.now()}`,
+      notes: { jobId: job._id.toString(), clientId: req.user.id }
+    });
+    res.json({ razorpayOrderId: order.id, razorpayKeyId: process.env.RAZORPAY_KEY_ID, amount: order.amount / 100, currency: order.currency });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// POST /api/jobs/:id/verify-payment — verify Razorpay signature and mark job as paid
+router.post('/:id/verify-payment', auth, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ message: 'Job not found' });
+    if (job.client.toString() !== req.user.id) return res.status(403).json({ message: 'Not your job' });
+
+    // Test mode orders bypass signature check
+    if (razorpay_order_id?.startsWith('order_test_')) {
+      job.paymentStatus = 'paid';
+      job.status = 'open';
+      await job.save();
+      return res.json({ success: true });
+    }
+
+    const expectedSig = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
+      .digest('hex');
+    if (expectedSig !== razorpay_signature) {
+      return res.status(400).json({ message: 'Invalid payment signature' });
+    }
+
+    job.paymentStatus = 'paid';
+    job.status = 'open';
+    await job.save();
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

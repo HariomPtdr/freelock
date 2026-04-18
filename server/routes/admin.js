@@ -195,7 +195,7 @@ router.get('/payments', auth, isAdmin, async (req, res) => {
             { path: 'job', select: 'title' },
           ]
         })
-        .select('milestoneNumber title amount status isAdvance razorpayPaymentId submittedAt releasedAt deadline contract')
+        .select('milestoneNumber title amount status isAdvance razorpayPaymentId submittedAt releasedAt deadline contract clientFee freelancerFee platformFee freelancerPayout')
         .sort({ createdAt: 1 }),
 
       Transaction.find()

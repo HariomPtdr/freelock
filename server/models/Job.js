@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bidSchema = new mongoose.Schema({
   freelancer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   proposal:   { type: String, required: true },
+  discountPercent: { type: Number, min: 0, max: 50, default: 0 },
   status: {
     type: String,
     enum: ['applied', 'shortlisted', 'hired', 'rejected'],

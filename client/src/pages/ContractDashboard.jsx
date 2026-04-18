@@ -111,6 +111,12 @@ export default function ContractDashboard() {
 
   useEffect(() => { load() }, [id])
 
+  useEffect(() => {
+    const handler = () => load()
+    window.addEventListener('payoutsProcessed', handler)
+    return () => window.removeEventListener('payoutsProcessed', handler)
+  }, [])
+
   const doAction = async (milestoneId, action, body = {}) => {
     setActionLoading(milestoneId + action)
     try {
@@ -119,6 +125,7 @@ export default function ContractDashboard() {
         setShowConfetti(true)
         setTimeout(() => setShowConfetti(false), 1500)
         toast.success('Phase approved — payment released and files unlocked.')
+        window.dispatchEvent(new Event('payoutsProcessed'))
       } else {
         toast.success('Done!')
       }
@@ -410,7 +417,12 @@ export default function ContractDashboard() {
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
-                <div className="text-lg font-bold" style={{ color: '#F5EDE4' }}>₹{advanceMilestone.amount?.toLocaleString()}</div>
+                <div className="text-lg font-bold" style={{ color: '#F5EDE4' }}>
+                  ₹{(user.role === 'freelancer' && advanceMilestone.freelancerPayout > 0 ? advanceMilestone.freelancerPayout : advanceMilestone.amount)?.toLocaleString()}
+                </div>
+                {user.role === 'freelancer' && advanceMilestone.freelancerPayout > 0 && (
+                  <p className="text-[10px] mt-0.5" style={{ color: '#6b5445' }}>after 2% fee</p>
+                )}
                 {user.role === 'client' && advanceMilestone.status === 'pending_deposit' && (
                   <>
                     <p className="text-[10px] mt-0.5" style={{ color: '#6b5445' }}>+₹{Math.round(advanceMilestone.amount * 0.02).toLocaleString()} fee = ₹{Math.round(advanceMilestone.amount * 1.02).toLocaleString()} total</p>
@@ -425,7 +437,12 @@ export default function ContractDashboard() {
             {user.role === 'freelancer' && advanceMilestone.status === 'released' && (
               <div className="mt-3 rounded-lg p-3 text-sm" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
                 <span className="font-semibold" style={{ color: '#10b981' }}>Advance payment sent to your account</span>
-                <span className="ml-2" style={{ color: '#059669' }}>— ₹{advanceMilestone.amount?.toLocaleString()}</span>
+                <span className="ml-2" style={{ color: '#059669' }}>
+                  — ₹{(advanceMilestone.freelancerPayout > 0 ? advanceMilestone.freelancerPayout : advanceMilestone.amount)?.toLocaleString()}
+                  {advanceMilestone.freelancerPayout > 0 && (
+                    <span className="text-[10px] font-normal ml-1" style={{ color: '#6b5445' }}>(after 2% fee)</span>
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -467,7 +484,12 @@ export default function ContractDashboard() {
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-lg font-bold" style={{ color: '#F5EDE4' }}>₹{m.amount?.toLocaleString()}</div>
+                  <div className="text-lg font-bold" style={{ color: '#F5EDE4' }}>
+                    ₹{(user.role === 'freelancer' && m.freelancerPayout > 0 ? m.freelancerPayout : m.amount)?.toLocaleString()}
+                  </div>
+                  {user.role === 'freelancer' && m.freelancerPayout > 0 && (
+                    <div className="text-[10px]" style={{ color: '#6b5445' }}>after 2% fee</div>
+                  )}
                   <div className="text-xs" style={{ color: '#6b5445' }}>Due {new Date(m.deadline).toLocaleDateString()}</div>
                 </div>
               </div>
@@ -581,27 +603,38 @@ export default function ContractDashboard() {
                       ? 'Deliverable files unlocked — you can download the code below.'
                       : 'Client has been granted access to your deliverable files.'}
                   </div>
-                  <div className="flex items-center justify-between gap-2 text-sm rounded-lg px-3 py-2" style={
-                    m.payoutStatus === 'processed' ? { background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' } :
-                    m.payoutStatus === 'processing' ? { background: 'rgba(59,130,246,0.08)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' } :
-                    m.payoutStatus === 'failed' ? { background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' } :
-                    { background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.08)' }
-                  }>
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d={m.payoutStatus === 'processed' ? 'M5 13l4 4L19 7' : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'} />
-                      </svg>
-                      <span className="font-medium">
-                        {m.payoutStatus === 'processed'
-                          ? (user.role === 'freelancer' ? 'Payment transferred to your account.' : 'Payment sent to freelancer.')
-                          : m.payoutStatus === 'processing' ? 'Bank transfer in progress...'
-                          : m.payoutStatus === 'failed' ? 'Payout failed — contact support'
-                          : (user.role === 'freelancer' ? 'Payout pending — add bank/UPI details in your profile.' : 'Awaiting freelancer payout setup.')}
+                  {m.payoutStatus === 'processed' ? (
+                    <div className="flex items-center justify-between gap-2 text-sm rounded-lg px-3 py-2"
+                      style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="font-medium">
+                          {user.role === 'freelancer' ? 'Payment transferred to your account.' : 'Payment sent to freelancer.'}
+                        </span>
+                      </div>
+                      <span className="font-bold flex-shrink-0" style={{ color: '#F5EDE4' }}>
+                        ₹{(user.role === 'freelancer' && m.freelancerPayout > 0 ? m.freelancerPayout : m.amount)?.toLocaleString()}
+                        {user.role === 'freelancer' && m.freelancerPayout > 0 && (
+                          <span className="text-[10px] font-normal ml-1" style={{ color: '#6b5445' }}>(after 2% fee)</span>
+                        )}
                       </span>
                     </div>
-                    <span className="font-bold flex-shrink-0" style={{ color: '#F5EDE4' }}>₹{m.amount?.toLocaleString()}</span>
-                  </div>
+                  ) : m.payoutStatus === 'processing' ? (
+                    <div className="flex items-center justify-between gap-2 text-sm rounded-lg px-3 py-2"
+                      style={{ background: 'rgba(59,130,246,0.08)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="font-medium">Bank transfer in progress...</span>
+                      </div>
+                      <span className="font-bold flex-shrink-0" style={{ color: '#F5EDE4' }}>
+                        ₹{(user.role === 'freelancer' && m.freelancerPayout > 0 ? m.freelancerPayout : m.amount)?.toLocaleString()}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               )}
 
@@ -874,16 +907,34 @@ export default function ContractDashboard() {
         {contract.status === 'active' && user.role === 'client' && (
           <div className="text-center mt-6 pb-2">
             <button onClick={async () => {
+              const confirmed = window.confirm(
+                'Are you sure you want to exit this contract?\n\n' +
+                '• The advance payment will be released to the freelancer.\n' +
+                '• Funded phase payments will be refunded to you (if work is under 50% complete).'
+              )
+              if (!confirmed) return
               try {
                 const { data } = await api.post(`/api/contracts/${id}/withdraw`)
-                if (data.allowed) { toast.success('Contract withdrawn. Funds refunded.'); await load() }
-                else toast.error(data.message)
+                if (data.allowed) {
+                  if (data.advanceReleased) {
+                    toast.success('Contract closed. Phase funds refunded. Advance payment released to freelancer.')
+                  } else {
+                    toast.success('Contract closed. Funds refunded.')
+                  }
+                  await load()
+                } else {
+                  if (data.advanceReleased) {
+                    toast('Advance payment released to freelancer. ' + data.message, { icon: 'ℹ️' })
+                  } else {
+                    toast.error(data.message)
+                  }
+                }
               } catch { toast.error('Withdrawal failed') }
             }} className="text-sm underline underline-offset-2 transition-colors"
               style={{ color: '#6b5445' }}
               onMouseEnter={e => e.currentTarget.style.color = '#BFBFBF'}
               onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>
-              Close Contract Early
+              Exit Contract Early
             </button>
           </div>
         )}

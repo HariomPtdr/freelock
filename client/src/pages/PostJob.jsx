@@ -176,6 +176,24 @@ export default function PostJob() {
           <p className="text-sm mt-1" style={{ color: '#6b5445' }}>Define your project phases upfront — freelancers see the full scope before applying</p>
         </div>
 
+        {/* Platform fee notice */}
+        <div className="rounded-xl p-4 mb-5 flex items-start gap-3" style={{ background: 'rgba(255,104,3,0.06)', border: '1px solid rgba(255,104,3,0.18)' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,104,3,0.12)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold" style={{ color: '#FF6803' }}>Platform Fee — 2% of Total Budget</p>
+            <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#BFBFBF' }}>
+              A <span style={{ color: '#FF6803', fontWeight: 600 }}>2% platform fee</span> on the total project budget will be charged when you fund the final phase and complete the project.
+              {budget > 0 && (
+                <span> For this job, that will be <span style={{ color: '#FF6803', fontWeight: 600 }}>₹{Math.round(budget * 0.02).toLocaleString()}</span>.</span>
+              )}
+            </p>
+          </div>
+        </div>
+
         {/* Profile incomplete warning */}
         {isBlocked && (
           <div className="rounded-xl p-4 mb-5 flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
@@ -267,7 +285,7 @@ export default function PostJob() {
 
           {/* ── Section 2: Advance Payment ── */}
           <div className="dark-card p-6">
-            <SectionHeader num="2" title="Advance Payment" subtitle="Automatically locked when you hire — released to freelancer after Phase 1 approval" />
+            <SectionHeader num="2" title="Advance Payment" subtitle="Automatically locked when you hire — released to freelancer on final phase completion or if client exits early" />
             <div className="flex gap-2 mb-4">
               {[10, 15, 20, 25].map(pct => (
                 <button key={pct} type="button" onClick={() => setForm({ ...form, advancePercent: pct })}

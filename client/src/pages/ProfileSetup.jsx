@@ -338,6 +338,27 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
                       {portfolio.availability}
                     </span>
                   )}
+                  {fullUser?.verificationStatus === 'approved' && (
+                    <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      Verified by SafeLancer
+                    </span>
+                  )}
+                  {fullUser?.verificationStatus === 'pending' && (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                      style={{ background: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.18)' }}>
+                      Pending Verification
+                    </span>
+                  )}
+                  {fullUser?.verificationStatus === 'rejected' && (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                      style={{ background: 'rgba(239,68,68,0.10)', color: '#f87171', border: '1px solid rgba(239,68,68,0.20)' }}>
+                      Verification Rejected
+                    </span>
+                  )}
                 </>
               ) : (
                 <>
@@ -413,7 +434,7 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
 
         {/* Details */}
         {(portfolio?.githubUrl || portfolio?.linkedinUrl || portfolio?.portfolioUrl ||
-          portfolio?.location || portfolio?.websiteUrl || portfolio?.yearsHiring) && (
+          portfolio?.location || portfolio?.websiteUrl || portfolio?.yearsHiring || portfolio?.resumeUrl) && (
           <div className="dark-card p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#6b5445' }}>Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -461,6 +482,21 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
                 <DetailRowCard icon={SetupIcons.globe} label="Website">
                   <a href={portfolio.websiteUrl} target="_blank" rel="noopener noreferrer"
                     className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#FF6803' }}>{portfolio.websiteUrl}</a>
+                </DetailRowCard>
+              )}
+              {portfolio?.resumeUrl && (
+                <DetailRowCard
+                  icon={
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#6b5445' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  }
+                  label="Resume"
+                >
+                  <a
+                    href={portfolio.resumeUrl.startsWith('http') ? portfolio.resumeUrl : `${FILE_BASE}${portfolio.resumeUrl}`}
+                    target="_blank" rel="noopener noreferrer" download
+                    className="text-xs hover:underline underline-offset-2 font-medium transition-colors" style={{ color: '#FF6803' }}>View / Download</a>
                 </DetailRowCard>
               )}
             </div>
@@ -909,11 +945,66 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
                 <option value="unavailable">Unavailable</option>
               </select>
             </Field>
-            <Field label="GitHub URL" required bonus={15} error={errors.githubUrl} hint="https://...">
+            <Field label="GitHub URL" required bonus={25} error={errors.githubUrl} hint="https://...">
               <input value={form.githubUrl}
                 onChange={e => { setForm({ ...form, githubUrl: e.target.value }); setErrors({ ...errors, githubUrl: '' }) }}
                 className={inputClass(errors.githubUrl)} placeholder="https://github.com/username" />
             </Field>
+
+            {/* ── Resume Upload ── */}
+            <div>
+              <label className="text-sm font-medium block mb-1.5" style={{ color: '#BFBFBF' }}>
+                Resume / CV
+                <span className="ml-1.5 text-xs font-normal" style={{ color: '#6b5445' }}>PDF or DOC, max 5MB</span>
+              </label>
+              {localPortfolio?.resumeUrl ? (
+                <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.18)' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,104,3,0.12)' }}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate" style={{ color: '#F5EDE4' }}>Resume uploaded</p>
+                    <a
+                      href={localPortfolio.resumeUrl.startsWith('http') ? localPortfolio.resumeUrl : `${FILE_BASE}${localPortfolio.resumeUrl}`}
+                      target="_blank" rel="noopener noreferrer" download
+                      className="text-xs hover:underline underline-offset-2 transition-colors"
+                      style={{ color: '#FF6803' }}>View / Download</a>
+                  </div>
+                  <label className="cursor-pointer flex-shrink-0">
+                    <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleResumeUpload} />
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                      style={{ background: 'rgba(255,104,3,0.10)', color: '#FF6803', border: '1px solid rgba(255,104,3,0.20)' }}>
+                      {resumeUploading ? 'Uploading…' : 'Replace'}
+                    </span>
+                  </label>
+                </div>
+              ) : (
+                <label className="cursor-pointer block">
+                  <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleResumeUpload} />
+                  <div className="rounded-xl px-4 py-5 flex flex-col items-center gap-2 transition-colors"
+                    style={{ background: '#120a02', border: '1px dashed rgba(255,104,3,0.25)' }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,104,3,0.50)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,104,3,0.25)'}>
+                    {resumeUploading ? (
+                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                    )}
+                    <p className="text-xs font-medium" style={{ color: '#BFBFBF' }}>
+                      {resumeUploading ? 'Uploading…' : 'Click to upload your resume'}
+                    </p>
+                    <p className="text-xs" style={{ color: '#6b5445' }}>PDF, DOC, DOCX</p>
+                  </div>
+                </label>
+              )}
+            </div>
           </>
         )}
 
@@ -993,7 +1084,7 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
           </>
         )}
 
-        <Field label="LinkedIn URL" required bonus={isFreelancer ? 5 : isIndividual ? 10 : 5} error={errors.linkedinUrl} hint="https://...">
+        <Field label="LinkedIn URL" required bonus={isFreelancer ? 10 : isIndividual ? 10 : 5} error={errors.linkedinUrl} hint="https://...">
           <input value={form.linkedinUrl}
             onChange={e => { setForm({ ...form, linkedinUrl: e.target.value }); setErrors({ ...errors, linkedinUrl: '' }) }}
             className={inputClass(errors.linkedinUrl)} placeholder="https://linkedin.com/in/username" />
@@ -1007,6 +1098,33 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
           </Field>
         )}
       </div>
+
+      {/* ── Live completion preview ── */}
+      {(() => {
+        const liveData = { ...localPortfolio, ...form }
+        const livePct = calcCompletion(user?.role, liveData)
+        const isComplete = livePct >= 100
+        return (
+          <div className="dark-card px-4 py-3 flex items-center gap-3">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-medium" style={{ color: '#6b5445' }}>Profile completion</span>
+                <span className="text-xs font-semibold" style={{ color: isComplete ? '#10b981' : '#FF6803' }}>{livePct}%</span>
+              </div>
+              <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'rgba(255,104,3,0.10)' }}>
+                <div className="h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${livePct}%`, background: isComplete ? 'linear-gradient(90deg,#10b981,#059669)' : 'linear-gradient(90deg,#FF6803,#AE3A02)' }} />
+              </div>
+            </div>
+            {isComplete && (
+              <div className="flex items-center gap-1 text-xs font-semibold flex-shrink-0" style={{ color: '#10b981' }}>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                Ready
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* ── Save / Cancel ── always at the very bottom ── */}
       <div className="dark-card p-4 flex gap-3">

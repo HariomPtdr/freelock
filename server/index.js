@@ -17,7 +17,13 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 // Videos served statically so the browser can play them natively; code files are gated via /api/milestones/file/:id/code
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', (req, res, next) => {
+  // Force download for resume files (PDF/DOC) so browser doesn't open them inline
+  if (/\.(pdf|doc|docx)$/i.test(req.path)) {
+    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(req.path)}"`);
+  }
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -200,11 +206,36 @@ cron.schedule('45 * * * *', async () => {
   }
 });
 
+// Recalculate and fix stale completionPercent for all portfolios on startup
+async function fixStaleCompletionPercents() {
+  try {
+    const Portfolio = require('./models/Portfolio');
+    const User = require('./models/User');
+    const { calcCompletion } = require('./utils/profileCompletion');
+
+    const portfolios = await Portfolio.find({});
+    let fixed = 0;
+    for (const p of portfolios) {
+      const user = await User.findById(p.user).select('role');
+      const role = user?.role || p.role;
+      const correct = calcCompletion(role, p.toObject());
+      if (correct !== p.completionPercent) {
+        await Portfolio.findByIdAndUpdate(p._id, { $set: { completionPercent: correct, role } });
+        fixed++;
+      }
+    }
+    if (fixed > 0) console.log(`[startup] Fixed completionPercent for ${fixed} portfolio(s)`);
+  } catch (err) {
+    console.error('[startup] completionPercent fix error:', err.message);
+  }
+}
+
 // Connect MongoDB and start server
 const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('MongoDB connected');
+    await fixStaleCompletionPercents();
     server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch(err => {

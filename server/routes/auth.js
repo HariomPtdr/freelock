@@ -227,8 +227,8 @@ router.get('/me', auth, async (req, res) => {
     const portfolio = await Portfolio.findOne({ user: req.user.id });
 
     if (portfolio) {
-      // Always recalculate completion from actual field values — never trust the stored value
-      const freshPct = calcCompletion(portfolio.role, portfolio);
+      // Always recalculate using the User's role — portfolio.role can be stale/mismatched
+      const freshPct = calcCompletion(user.role, portfolio);
       if (freshPct !== portfolio.completionPercent) {
         portfolio.completionPercent = freshPct;
         await Portfolio.findByIdAndUpdate(portfolio._id, { $set: { completionPercent: freshPct } });

@@ -8,6 +8,14 @@ const isTestMode = require('../utils/isTestMode');
 
 async function recordTransaction(milestone, amount, type, payoutId = '') {
   try {
+    // Idempotent — skip if a transaction already exists for this milestone
+    const existing = await Transaction.findOne({ milestone: milestone._id });
+    if (existing) {
+      if (payoutId && !existing.payoutId) {
+        await Transaction.findByIdAndUpdate(existing._id, { payoutId });
+      }
+      return existing;
+    }
     const tx = await Transaction.create({
       freelancer: milestone.freelancer,
       contract: milestone.contract,
@@ -18,7 +26,7 @@ async function recordTransaction(milestone, amount, type, payoutId = '') {
       description: milestone.title,
       payoutId,
     });
-    // Credit wallet balance
+    // Credit wallet balance only on first transaction
     await User.findByIdAndUpdate(milestone.freelancer, { $inc: { walletBalance: amount } });
     return tx;
   } catch (err) {
@@ -50,9 +58,10 @@ async function initiateFreelancerPayout(milestone, overrideAmount, overrideType)
     }
 
     if (!freelancerPortfolio?.payoutDetailsAdded) {
-      await Milestone.findByIdAndUpdate(milestone._id, { payoutStatus: 'pending', payoutInitiatedAt: new Date() });
-      // Still record the transaction and credit the wallet — bank transfer is pending setup
-      await recordTransaction(milestone, amount, type);
+      // Credit wallet immediately even without bank details; bank transfer happens once they add details
+      const payoutId = 'payout_wallet_' + Date.now();
+      await Milestone.findByIdAndUpdate(milestone._id, { payoutId, payoutStatus: 'processed', payoutInitiatedAt: new Date() });
+      await recordTransaction(milestone, amount, type, payoutId);
       return;
     }
 
@@ -111,7 +120,13 @@ async function initiateFreelancerPayout(milestone, overrideAmount, overrideType)
     await recordTransaction(milestone, amount, type, payout.id);
   } catch (err) {
     console.error('Payout initiation failed for milestone', milestone._id, ':', err.message);
-    await Milestone.findByIdAndUpdate(milestone._id, { payoutStatus: 'failed' });
+    // Still credit the freelancer's wallet and record the transaction so they aren't left empty-handed.
+    // Mark as 'pending' (bank transfer needs manual setup) rather than 'failed'.
+    await Milestone.findByIdAndUpdate(milestone._id, {
+      payoutStatus: 'pending',
+      payoutInitiatedAt: new Date()
+    });
+    await recordTransaction(milestone, amount, type);
   }
 }
 

@@ -4,6 +4,8 @@ const Contract = require('../models/Contract');
 const Milestone = require('../models/Milestone');
 const auth = require('../middleware/auth');
 const isTestMode = require('../utils/isTestMode');
+const { milestoneTransition } = require('../services/stateMachine');
+const { initiateFreelancerPayout } = require('../services/releaseService');
 
 // GET /api/contracts/my-contracts — client
 router.get('/my-contracts', auth, async (req, res) => {
@@ -53,6 +55,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // POST /api/contracts/:id/withdraw — client withdrawal with 50% rule
+// Advance payment is always released to the freelancer on withdrawal (never refunded to client).
 router.post('/:id/withdraw', auth, async (req, res) => {
   try {
     const contract = await Contract.findById(req.params.id);
@@ -60,16 +63,32 @@ router.post('/:id/withdraw', auth, async (req, res) => {
     if (contract.client.toString() !== req.user.id) return res.status(403).json({ message: 'Clients only' });
 
     const milestones = await Milestone.find({ contract: contract._id });
-    const total = milestones.length;
 
-    const approved = milestones.filter(m => ['approved', 'released'].includes(m.status)).length;
-    const inProgress = milestones.filter(m => ['in_progress', 'submitted', 'review', 'funded'].includes(m.status)).length;
+    const advance = milestones.find(m => m.isAdvance);
+    const regular = milestones.filter(m => !m.isAdvance);
+
+    // Completion ratio is based on regular (phase) milestones only
+    const total = regular.length;
+    const approved = regular.filter(m => ['approved', 'released'].includes(m.status)).length;
+    const inProgress = regular.filter(m => ['in_progress', 'submitted', 'review', 'funded'].includes(m.status)).length;
     const completionRatio = total > 0 ? (approved + inProgress * 0.5) / total : 0;
     const completionPercent = Math.round(completionRatio * 100);
 
+    // Always release advance to freelancer on exit — it is never refunded to the client
+    let advanceReleased = false;
+    if (advance && advance.status === 'funded') {
+      try {
+        await milestoneTransition(advance._id, 'released');
+        await initiateFreelancerPayout(advance);
+        advanceReleased = true;
+      } catch (e) {
+        console.error('Failed to release advance on withdrawal:', e.message);
+      }
+    }
+
     if (completionRatio <= 0.5) {
-      // Free withdrawal — refund all captured Razorpay payments
-      for (const m of milestones) {
+      // Refund regular phase payments to client
+      for (const m of regular) {
         if (['funded', 'in_progress'].includes(m.status)) {
           if (!isTestMode() && m.razorpayPaymentId && !m.razorpayPaymentId.startsWith('pay_test_')) {
             try {
@@ -86,10 +105,17 @@ router.post('/:id/withdraw', auth, async (req, res) => {
       contract.status = 'withdrawn';
       contract.withdrawnAt = new Date();
       await contract.save();
-      return res.json({ allowed: true, completionPercent, message: 'Contract withdrawn. All frozen funds refunded.' });
+      return res.json({
+        allowed: true,
+        completionPercent,
+        advanceReleased,
+        message: advanceReleased
+          ? 'Contract withdrawn. Phase funds refunded to you. Advance payment has been released to the freelancer.'
+          : 'Contract withdrawn. All phase funds refunded.',
+      });
     }
 
-    const amountOwed = milestones
+    const amountOwed = regular
       .filter(m => ['in_progress', 'submitted', 'review', 'funded'].includes(m.status))
       .reduce((sum, m) => sum + m.amount, 0);
 
@@ -97,7 +123,8 @@ router.post('/:id/withdraw', auth, async (req, res) => {
       allowed: false,
       completionPercent,
       amountOwed,
-      message: `Work is ${completionPercent}% complete. You must pay ₹${amountOwed} before withdrawing.`
+      advanceReleased,
+      message: `Work is ${completionPercent}% complete. You must pay ₹${amountOwed.toLocaleString()} before withdrawing.${advanceReleased ? ' The advance payment has been released to the freelancer.' : ''}`,
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
