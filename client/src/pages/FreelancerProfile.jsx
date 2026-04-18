@@ -51,29 +51,6 @@ const Icons = {
   ),
 }
 
-function StatCard({ value, label, color = 'text-zinc-900' }) {
-  return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-4 text-center">
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
-      <div className="text-zinc-500 text-xs mt-1">{label}</div>
-    </div>
-  )
-}
-
-function InfoRow({ icon, label, value }) {
-  return (
-    <div className="flex items-center gap-4 bg-white border border-zinc-200 rounded-xl px-4 py-3">
-      <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-zinc-400 mb-0.5">{label}</p>
-        <p className="text-sm font-semibold text-zinc-900 truncate">{value}</p>
-      </div>
-    </div>
-  )
-}
-
 export default function FreelancerProfile() {
   const { userId } = useParams()
   const navigate = useNavigate()
@@ -96,16 +73,16 @@ export default function FreelancerProfile() {
     load()
   }, [userId])
 
-if (loading) return (
-    <div className="min-h-screen bg-zinc-100"><Navbar />
+  if (loading) return (
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}><Navbar />
       <div className="flex justify-center py-20">
-        <div className="animate-spin h-6 w-6 border-2 border-zinc-900 border-t-transparent rounded-full" />
+        <div className="animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent rounded-full" />
       </div>
     </div>
   )
   if (!profile) return (
-    <div className="min-h-screen bg-zinc-100"><Navbar />
-      <p className="text-center py-12 text-zinc-400 text-sm">Profile not found</p>
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}><Navbar />
+      <p className="text-center py-12 text-sm" style={{ color: '#52525b' }}>Profile not found</p>
     </div>
   )
 
@@ -119,56 +96,50 @@ if (loading) return (
 
   const { earned: earnedBadges, total: totalBadges } = computeBadges('freelancer', profile.user, profile)
 
-  const inputCls = "w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-400 transition-colors"
-
   return (
-    <div className="min-h-screen bg-zinc-100">
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}>
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-6 pt-4">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900 font-medium transition-colors">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm font-medium transition-colors" style={{ color: '#a1a1aa' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
+          onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back
         </button>
       </div>
 
       {/* Cover */}
-      <div className="bg-zinc-900 h-36" />
+      <div className="h-36" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }} />
 
       <div className="max-w-4xl mx-auto px-6 pb-16">
 
         {/* ── Hero card ── */}
-        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-6 -mt-12 mb-4">
+        <div className="dark-card p-6 -mt-12 mb-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-end gap-5">
               {/* Avatar */}
               {avatarUrl
                 ? <img src={avatarUrl} alt={profile.user?.name}
-                    className="w-20 h-20 rounded-xl object-cover border-4 border-white shadow-md -mt-14 flex-shrink-0" />
-                : <div className="w-20 h-20 rounded-xl bg-zinc-800 border-4 border-white shadow-md -mt-14 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 select-none">
+                    className="w-20 h-20 rounded-xl object-cover -mt-14 flex-shrink-0" style={{ border: '4px solid #111113', boxShadow: '0 0 0 1px rgba(139,92,246,0.3)' }} />
+                : <div className="w-20 h-20 rounded-xl -mt-14 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 select-none" style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', border: '4px solid #111113' }}>
                     {profile.user?.name?.[0]?.toUpperCase()}
                   </div>
               }
               <div className="pb-0.5">
-                <h1 className="text-xl font-bold text-zinc-900">{profile.user?.name}</h1>
+                <h1 className="text-xl font-bold text-white">{profile.user?.name}</h1>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   {avgRating && (
-                    <span className="flex items-center gap-1 text-zinc-900 font-semibold text-sm">
-                      <svg className="w-3.5 h-3.5 fill-zinc-700" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    <span className="flex items-center gap-1 font-semibold text-sm" style={{ color: '#A78BFA' }}>
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                       {avgRating}
-                      <span className="text-zinc-400 font-normal text-xs">({ratings.length})</span>
+                      <span className="font-normal text-xs" style={{ color: '#52525b' }}>({ratings.length})</span>
                     </span>
                   )}
                   {profile.user?.totalJobsCompleted > 0 && (
-                    <span className="text-xs text-zinc-400">{profile.user.totalJobsCompleted} jobs completed</span>
+                    <span className="text-xs" style={{ color: '#52525b' }}>{profile.user.totalJobsCompleted} jobs completed</span>
                   )}
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${
-                    profile.availability === 'full-time'
-                      ? 'bg-zinc-100 text-zinc-700 border-zinc-200'
-                      : profile.availability === 'part-time'
-                      ? 'bg-zinc-100 text-zinc-700 border-zinc-200'
-                      : 'bg-zinc-100 text-zinc-500 border-zinc-200'
-                  }`}>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: '#1a1a1d', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)' }}>
                     {profile.availability === 'full-time' ? 'Available full-time'
                       : profile.availability === 'part-time' ? 'Available part-time'
                       : 'Not available'}
@@ -176,76 +147,82 @@ if (loading) return (
                 </div>
               </div>
             </div>
-
-            {/* CTA — only for clients, never show edit here */}
           </div>
 
           {/* Bio */}
           {profile.bio && (
-            <p className="text-zinc-600 mt-5 text-sm leading-relaxed border-t border-zinc-100 pt-4">{profile.bio}</p>
+            <p className="mt-5 text-sm leading-relaxed pt-4" style={{ color: '#a1a1aa', borderTop: '1px solid rgba(255,255,255,0.06)' }}>{profile.bio}</p>
           )}
 
           {/* Skills */}
           {profile.skills?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">
               {profile.skills.map(s => (
-                <span key={s} className="bg-zinc-100 text-zinc-700 px-2.5 py-1 rounded-lg text-xs font-medium border border-zinc-200">{s}</span>
+                <span key={s} className="px-2.5 py-1 rounded-lg text-xs font-medium" style={{ background: 'rgba(139,92,246,0.1)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.2)' }}>{s}</span>
               ))}
             </div>
           )}
 
           {/* Links */}
           {(profile.githubUrl || profile.linkedinUrl || profile.portfolioUrl) && (
-            <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-zinc-100">
+            <div className="flex flex-wrap items-center gap-3 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               {profile.githubUrl && (
                 <a href={profile.githubUrl} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors border border-zinc-200 hover:border-zinc-400 rounded-lg px-3 py-1.5">
+                  className="inline-flex items-center gap-2 text-sm font-medium transition-colors px-3 py-1.5 rounded-lg"
+                  style={{ color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#f4f4f5'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#a1a1aa'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
                   {Icons.github} GitHub
                 </a>
               )}
               {profile.linkedinUrl && (
                 <a href={profile.linkedinUrl} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors border border-zinc-200 hover:border-zinc-400 rounded-lg px-3 py-1.5">
+                  className="inline-flex items-center gap-2 text-sm font-medium transition-colors px-3 py-1.5 rounded-lg"
+                  style={{ color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#f4f4f5'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#a1a1aa'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
                   {Icons.linkedin} LinkedIn
                 </a>
               )}
               {profile.portfolioUrl && (
                 <a href={profile.portfolioUrl} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors border border-zinc-200 hover:border-zinc-400 rounded-lg px-3 py-1.5">
+                  className="inline-flex items-center gap-2 text-sm font-medium transition-colors px-3 py-1.5 rounded-lg"
+                  style={{ color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#f4f4f5'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.4)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#a1a1aa'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
                   {Icons.globe} Portfolio
                 </a>
               )}
             </div>
           )}
-
         </div>
 
         {/* ── Stats ── */}
-        <div className="bg-white rounded-xl border border-zinc-200 mb-4">
-          <div className="grid grid-cols-4 divide-x divide-zinc-100">
+        <div className="dark-card mb-4">
+          <div className="grid grid-cols-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             {[
-              { value: avgRating ? `${avgRating}` : '—', label: 'Avg Rating', color: 'text-zinc-900' },
-              { value: profile.user?.totalJobsCompleted || 0, label: 'Jobs Done', color: 'text-zinc-900' },
-              { value: `${profile.user?.onTimeDeliveryRate?.toFixed(0) || 0}%`, label: 'On-time', color: 'text-zinc-900' },
-              { value: `${profile.user?.disputeRate?.toFixed(0) || 0}%`, label: 'Disputes', color: 'text-zinc-900' },
-            ].map(stat => (
-              <div key={stat.label} className="py-4 px-2 text-center">
-                <div className={`text-xl font-bold ${stat.color}`}>{stat.value}</div>
-                <div className="text-zinc-400 text-xs mt-0.5 leading-tight">{stat.label}</div>
+              { value: avgRating ? `${avgRating}` : '—', label: 'Avg Rating' },
+              { value: profile.user?.totalJobsCompleted || 0, label: 'Jobs Done' },
+              { value: `${profile.user?.onTimeDeliveryRate?.toFixed(0) || 0}%`, label: 'On-time' },
+              { value: `${profile.user?.disputeRate?.toFixed(0) || 0}%`, label: 'Disputes' },
+            ].map((stat, idx) => (
+              <div key={stat.label} className="py-4 px-2 text-center" style={idx > 0 ? { borderLeft: '1px solid rgba(255,255,255,0.06)' } : {}}>
+                <div className="text-xl font-bold text-white">{stat.value}</div>
+                <div className="text-xs mt-0.5 leading-tight" style={{ color: '#52525b' }}>{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* ── Badges ── */}
-        <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
+        <div className="dark-card p-5 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-zinc-800">Badges & Achievements</h2>
-            <span className="text-xs text-zinc-400">{earnedBadges.length} / {totalBadges} earned</span>
+            <h2 className="text-sm font-semibold text-white">Badges & Achievements</h2>
+            <span className="text-xs" style={{ color: '#52525b' }}>{earnedBadges.length} / {totalBadges} earned</span>
           </div>
 
           {earnedBadges.length === 0 && (
-            <p className="text-sm text-zinc-400 italic">No badges earned yet.</p>
+            <p className="text-sm italic" style={{ color: '#52525b' }}>No badges earned yet.</p>
           )}
 
           {earnedBadges.length > 0 && (
@@ -270,10 +247,13 @@ if (loading) return (
 
         {/* ── Resume ── */}
         {profile.resumeUrl && (
-          <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
-            <h2 className="text-sm font-semibold text-zinc-800 mb-3">Resume</h2>
+          <div className="dark-card p-5 mb-4">
+            <h2 className="text-sm font-semibold text-white mb-3">Resume</h2>
             <a href={`${FILE_BASE}${profile.resumeUrl}`} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-2.5 border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 font-medium text-sm px-4 py-2.5 rounded-xl transition-colors">
+              className="inline-flex items-center gap-2.5 font-medium text-sm px-4 py-2.5 rounded-xl transition-colors"
+              style={{ border: '1px solid rgba(255,255,255,0.08)', background: '#1a1a1d', color: '#a1a1aa' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
+              onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
               {Icons.download}
               Download Resume (PDF)
             </a>
@@ -282,24 +262,29 @@ if (loading) return (
 
         {/* ── Portfolio Samples ── */}
         {profile.projectSamples?.length > 0 && (
-          <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
+          <div className="dark-card p-5 mb-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-800">Portfolio Samples</h2>
-              <span className="text-xs text-zinc-400">{profile.projectSamples.length} project{profile.projectSamples.length !== 1 ? 's' : ''}</span>
+              <h2 className="text-sm font-semibold text-white">Portfolio Samples</h2>
+              <span className="text-xs" style={{ color: '#52525b' }}>{profile.projectSamples.length} project{profile.projectSamples.length !== 1 ? 's' : ''}</span>
             </div>
             <div className="flex flex-col gap-2">
               {profile.projectSamples.map((sample, i) => (
-                <div key={i} className="flex items-center gap-3 bg-white border border-zinc-200 rounded-xl px-4 py-3 hover:border-zinc-300 transition-colors">
-                  <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                <div key={i} className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
+                  style={{ border: '1px solid rgba(255,255,255,0.08)', background: '#1a1a1d' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(139,92,246,0.3)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>
                     {Icons.paperclip}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-zinc-900 truncate">{sample.title}</p>
+                    <p className="text-sm font-semibold text-white truncate">{sample.title}</p>
                     {sample.description
-                      ? <p className="text-xs text-zinc-500 mt-0.5 truncate">{sample.description}</p>
+                      ? <p className="text-xs mt-0.5 truncate" style={{ color: '#a1a1aa' }}>{sample.description}</p>
                       : sample.fileUrl && (
                         <a href={`${FILE_BASE}${sample.fileUrl}`} target="_blank" rel="noreferrer"
-                          className="text-xs text-zinc-500 hover:text-zinc-700 mt-0.5 truncate block transition-colors">
+                          className="text-xs mt-0.5 truncate block transition-colors" style={{ color: '#a1a1aa' }}
+                          onMouseEnter={e => e.currentTarget.style.color = '#A78BFA'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
                           View / Download
                         </a>
                       )
@@ -308,13 +293,16 @@ if (loading) return (
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {sample.description && sample.fileUrl && (
                       <a href={`${FILE_BASE}${sample.fileUrl}`} target="_blank" rel="noreferrer"
-                        className="text-xs text-zinc-500 hover:text-zinc-700 font-medium transition-colors">
+                        className="text-xs font-medium transition-colors" style={{ color: '#a1a1aa' }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#A78BFA'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
                         Download
                       </a>
                     )}
                     {sample.fileHash && (
                       <a href={`/verify/${sample.fileHash}`} target="_blank" rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-xs bg-zinc-900 text-white px-2.5 py-1 rounded-lg hover:bg-zinc-700 transition-colors font-medium">
+                        className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-colors"
+                        style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}>
                         {Icons.shield}
                         SHA-256
                       </a>

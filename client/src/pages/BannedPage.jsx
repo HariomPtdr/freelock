@@ -43,7 +43,7 @@ export default function BannedPage() {
             setTimeout(() => { window.location.href = '/' }, 1500)
           } catch { toast.error('Payment confirmation failed. Contact support.') }
         },
-        theme: { color: '#09090b' }
+        theme: { color: '#8B5CF6' }
       }
       const rzp = new window.Razorpay(options)
       rzp.open()
@@ -55,41 +55,41 @@ export default function BannedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-100 flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl border border-red-200 p-8 max-w-md w-full text-center shadow-sm">
-        <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#0a0a0b' }}>
+      <div className="dark-card p-8 max-w-md w-full text-center" style={{ border: '1px solid rgba(239,68,68,0.3)' }}>
+        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(239,68,68,0.1)' }}>
+          <svg className="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
         </div>
 
-        <h1 className="text-xl font-bold text-zinc-900 mb-2">Account Suspended</h1>
-        <p className="text-sm text-zinc-500 mb-5">Your account has been temporarily suspended due to a policy violation.</p>
+        <h1 className="text-xl font-bold text-white mb-2">Account Suspended</h1>
+        <p className="text-sm mb-5" style={{ color: '#a1a1aa' }}>Your account has been temporarily suspended due to a policy violation.</p>
 
         {banInfo.reason && (
-          <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-5 text-left">
-            <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">Reason</p>
-            <p className="text-sm text-red-800">{banInfo.reason}</p>
+          <div className="rounded-xl p-4 mb-5 text-left" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <p className="text-xs font-semibold text-red-400 uppercase tracking-wide mb-1">Reason</p>
+            <p className="text-sm text-red-300">{banInfo.reason}</p>
           </div>
         )}
 
         {banInfo.penaltyDue > 0 && (
-          <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 mb-5">
-            <p className="text-xs text-zinc-400 mb-1">Penalty Due</p>
-            <p className="text-2xl font-bold text-zinc-900">₹{banInfo.penaltyDue?.toLocaleString()}</p>
+          <div className="rounded-xl p-4 mb-5" style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-xs mb-1" style={{ color: '#a1a1aa' }}>Penalty Due</p>
+            <p className="text-2xl font-bold text-white">₹{banInfo.penaltyDue?.toLocaleString()}</p>
           </div>
         )}
 
         <button
           onClick={payPenalty}
           disabled={loading}
-          className="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-3 rounded-xl font-medium text-sm disabled:opacity-50 transition-colors mb-3"
+          className="btn-purple w-full py-3 rounded-xl font-medium text-sm disabled:opacity-50 mb-3"
         >
           {loading ? 'Processing...' : banInfo.penaltyDue > 0 ? `Pay Penalty — ₹${banInfo.penaltyDue?.toLocaleString()}` : 'Clear Penalty & Restore Access'}
         </button>
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs" style={{ color: '#52525b' }}>
           Need help?{' '}
-          <a href="mailto:support@safelancer.in" className="text-zinc-600 hover:underline">Contact support</a>
+          <a href="mailto:support@safelancer.in" style={{ color: '#a1a1aa' }} className="hover:text-white transition-colors">Contact support</a>
         </p>
       </div>
     </div>

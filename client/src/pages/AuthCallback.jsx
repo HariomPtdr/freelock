@@ -58,10 +58,10 @@ export default function AuthCallback() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-zinc-100 flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0b' }}>
       <div className="flex flex-col items-center gap-3">
-        <div className="animate-spin h-6 w-6 border-2 border-zinc-900 border-t-transparent rounded-full" />
-        <p className="text-sm text-zinc-500">
+        <div className="animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent rounded-full" />
+        <p className="text-sm" style={{ color: '#a1a1aa' }}>
           {message ? 'Redirecting you...' : 'Signing you in...'}
         </p>
       </div>

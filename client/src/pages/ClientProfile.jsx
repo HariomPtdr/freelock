@@ -72,13 +72,13 @@ const COMM_LABELS = {
 
 function InfoRow({ icon, label, value }) {
   return (
-    <div className="flex items-center gap-4 bg-white border border-zinc-200 rounded-xl px-4 py-3">
-      <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+    <div className="flex items-center gap-4 rounded-xl px-4 py-3" style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-zinc-400 mb-0.5">{label}</p>
-        <p className="text-sm font-semibold text-zinc-900 truncate">{value}</p>
+        <p className="text-xs mb-0.5" style={{ color: '#52525b' }}>{label}</p>
+        <p className="text-sm font-semibold text-white truncate">{value}</p>
       </div>
     </div>
   )
@@ -106,22 +106,20 @@ export default function ClientProfile() {
   }, [userId])
 
   if (loading) return (
-    <div className="min-h-screen bg-zinc-100"><Navbar />
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}><Navbar />
       <div className="flex justify-center py-20">
-        <div className="animate-spin h-6 w-6 border-2 border-zinc-900 border-t-transparent rounded-full" />
+        <div className="animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent rounded-full" />
       </div>
     </div>
   )
   if (!profile) return (
-    <div className="min-h-screen bg-zinc-100"><Navbar />
-      <p className="text-center py-12 text-zinc-400 text-sm">Profile not found</p>
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}><Navbar />
+      <p className="text-center py-12 text-sm" style={{ color: '#52525b' }}>Profile not found</p>
     </div>
   )
 
   const isBusiness = profile.clientType === 'business'
   const isIndividual = profile.clientType === 'individual'
-  const coverBg = 'bg-zinc-900'
-  const avatarFallbackBg = 'bg-zinc-800'
   const avatarShape = isBusiness ? 'rounded-xl' : 'rounded-full'
 
   const avatarUrl = profile.avatarUrl
@@ -135,84 +133,87 @@ export default function ClientProfile() {
     : null
 
   return (
-    <div className="min-h-screen bg-zinc-100">
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}>
       <Navbar />
 
       {/* Cover */}
-      <div className={`h-36 ${coverBg}`} />
+      <div className="h-36" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }} />
 
       <div className="max-w-4xl mx-auto px-6 pb-16">
 
         {/* ── Hero card ── */}
-        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-6 -mt-12 mb-4">
+        <div className="dark-card p-6 -mt-12 mb-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-end gap-5">
               {/* Avatar */}
               {avatarUrl
                 ? <img src={avatarUrl} alt={profile.user?.name}
-                    className={`w-20 h-20 object-cover border-4 border-white shadow-md -mt-14 flex-shrink-0 ${avatarShape}`} />
-                : <div className={`w-20 h-20 border-4 border-white shadow-md -mt-14 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 select-none ${avatarFallbackBg} ${avatarShape}`}>
+                    className={`w-20 h-20 object-cover -mt-14 flex-shrink-0 ${avatarShape}`}
+                    style={{ border: '4px solid #111113', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }} />
+                : <div className={`w-20 h-20 -mt-14 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 select-none ${avatarShape}`}
+                    style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', border: '4px solid #111113', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
                     {profile.user?.name?.[0]?.toUpperCase()}
                   </div>
               }
               <div className="pb-0.5">
-                <h1 className="text-xl font-bold text-zinc-900">{profile.user?.name}</h1>
+                <h1 className="text-xl font-bold text-white">{profile.user?.name}</h1>
                 {isBusiness && profile.companyName && (
-                  <p className="text-sm text-zinc-500 mt-0.5">{profile.companyName}</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#a1a1aa' }}>{profile.companyName}</p>
                 )}
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
                   {profile.clientType && (
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${
-                      isIndividual
-                        ? 'bg-zinc-100 text-zinc-700 border-zinc-200'
-                        : 'bg-zinc-100 text-zinc-700 border-zinc-200'
-                    }`}>
+                    <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: '#1a1a1d', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)' }}>
                       {isIndividual ? 'Individual' : 'Business'}
                     </span>
                   )}
                   {isBusiness && profile.industry && (
-                    <span className="text-xs bg-zinc-100 text-zinc-600 px-2.5 py-1 rounded-full font-medium border border-zinc-200">
+                    <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: '#1a1a1d', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)' }}>
                       {profile.industry}
                     </span>
                   )}
                   {profile.paymentVerified && (
-                    <span className="text-xs bg-zinc-100 text-zinc-700 border border-zinc-200 px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">
+                    <span className="text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5" style={{ background: 'rgba(139,92,246,0.1)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.2)' }}>
                       {Icons.shield}
                       Payment Verified
                     </span>
                   )}
                   {avgRating && (
-                    <span className="flex items-center gap-1 text-zinc-900 font-semibold text-sm">
-                      <svg className="w-3.5 h-3.5 fill-zinc-700" viewBox="0 0 20 20">
+                    <span className="flex items-center gap-1 font-semibold text-sm" style={{ color: '#A78BFA' }}>
+                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                       {avgRating}
-                      <span className="text-zinc-400 font-normal text-xs">({ratings.length})</span>
+                      <span className="font-normal text-xs" style={{ color: '#52525b' }}>({ratings.length})</span>
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            {/* No edit button — this is a public view only */}
           </div>
 
           {/* Bio */}
           {profile.bio && (
-            <p className="text-zinc-600 mt-5 text-sm leading-relaxed border-t border-zinc-100 pt-4">{profile.bio}</p>
+            <p className="mt-5 text-sm leading-relaxed pt-4" style={{ color: '#a1a1aa', borderTop: '1px solid rgba(255,255,255,0.06)' }}>{profile.bio}</p>
           )}
 
           {/* Links */}
           {(profile.linkedinUrl || profile.websiteUrl) && (
-            <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-zinc-100">
+            <div className="flex flex-wrap items-center gap-3 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               {profile.linkedinUrl && (
                 <a href={profile.linkedinUrl} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors border border-zinc-200 hover:border-zinc-400 rounded-lg px-3 py-1.5">
+                  className="inline-flex items-center gap-2 text-sm font-medium transition-colors rounded-lg px-3 py-1.5"
+                  style={{ color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)', background: '#1a1a1d' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#f4f4f5'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#a1a1aa'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
                   {Icons.linkedin} LinkedIn
                 </a>
               )}
               {profile.websiteUrl && (
                 <a href={profile.websiteUrl} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors border border-zinc-200 hover:border-zinc-400 rounded-lg px-3 py-1.5">
+                  className="inline-flex items-center gap-2 text-sm font-medium transition-colors rounded-lg px-3 py-1.5"
+                  style={{ color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)', background: '#1a1a1d' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#f4f4f5'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#a1a1aa'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
                   {Icons.globe} Website
                 </a>
               )}
@@ -222,17 +223,17 @@ export default function ClientProfile() {
         </div>
 
         {/* ── Stats ── */}
-        <div className="bg-white rounded-xl border border-zinc-200 mb-4">
-          <div className="grid grid-cols-4 divide-x divide-zinc-100">
+        <div className="dark-card mb-4">
+          <div className="grid grid-cols-4" style={{ borderBottom: 'none' }}>
             {[
               { value: avgRating ? `${avgRating}` : '—', label: 'Avg Rating' },
               { value: profile.projectsPosted || 0, label: 'Jobs Posted' },
               { value: profile.projectsCompleted || 0, label: 'Completed' },
               { value: profile.avgBudget > 0 ? `₹${Math.round(profile.avgBudget / 1000)}k` : '—', label: 'Avg Budget' },
-            ].map(stat => (
-              <div key={stat.label} className="py-4 px-2 text-center">
-                <div className="text-xl font-bold text-zinc-900">{stat.value}</div>
-                <div className="text-zinc-400 text-xs mt-0.5 leading-tight">{stat.label}</div>
+            ].map((stat, idx) => (
+              <div key={stat.label} className="py-4 px-2 text-center" style={idx > 0 ? { borderLeft: '1px solid rgba(255,255,255,0.06)' } : {}}>
+                <div className="text-xl font-bold text-white">{stat.value}</div>
+                <div className="text-xs mt-0.5 leading-tight" style={{ color: '#52525b' }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -240,8 +241,8 @@ export default function ClientProfile() {
 
         {/* ── Details ── */}
         {(profile.location || profile.yearsHiring || profile.preferredComm || (isBusiness && profile.companySize) || (isBusiness && profile.industry)) && (
-          <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
-            <h2 className="text-sm font-semibold text-zinc-800 mb-4">Details</h2>
+          <div className="dark-card p-5 mb-4">
+            <h2 className="text-sm font-semibold text-white mb-4">Details</h2>
             <div className="flex flex-col gap-3">
               {profile.location && (
                 <InfoRow icon={Icons.location} label="Location" value={profile.location} />
@@ -263,14 +264,14 @@ export default function ClientProfile() {
         )}
 
         {/* ── Badges ── */}
-        <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
+        <div className="dark-card p-5 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-zinc-800">Badges & Achievements</h2>
-            <span className="text-xs text-zinc-400">{earnedBadges.length} / {totalBadges} earned</span>
+            <h2 className="text-sm font-semibold text-white">Badges & Achievements</h2>
+            <span className="text-xs" style={{ color: '#52525b' }}>{earnedBadges.length} / {totalBadges} earned</span>
           </div>
 
           {earnedBadges.length === 0 && (
-            <p className="text-sm text-zinc-400 italic">No badges earned yet.</p>
+            <p className="text-sm italic" style={{ color: '#52525b' }}>No badges earned yet.</p>
           )}
 
           {earnedBadges.length > 0 && (

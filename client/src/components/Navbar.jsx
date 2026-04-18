@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { FREELANCER_BADGES, CLIENT_BADGES, BADGE_COLORS } from '../utils/badges'
 import api from '../api'
 
 export default function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const user = JSON.parse(localStorage.getItem('user') || 'null')
   const [badgeOpen, setBadgeOpen] = useState(false)
   const [earnedIds, setEarnedIds] = useState(() => {
@@ -77,68 +78,118 @@ export default function Navbar() {
   const earnedBadges = allBadges.filter(b => earnedIds.includes(b.id))
   const hasAnyBadgeData = totalCount > 0
 
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/')
+
+  const linkStyle = (path) => ({
+    color: isActive(path) ? '#A78BFA' : '#71717a',
+    fontWeight: 500,
+    fontSize: '14px',
+    transition: 'color 0.15s',
+    textDecoration: 'none',
+  })
+
+  const dropdownStyle = {
+    background: '#111113',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '14px',
+    boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
+    overflow: 'hidden',
+  }
+
   return (
     <div className="sticky top-0 z-50">
-      <nav className="bg-white border-b border-zinc-200 px-6 py-3 flex items-center justify-between">
-        <Link to={dashboardPath} className="flex items-center gap-2">
-          <span className="text-base font-bold text-zinc-900 tracking-tight">SafeLancer</span>
-          <span className="text-[10px] bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded font-semibold tracking-wider uppercase">Beta</span>
+      <nav
+        className="px-6 py-3 flex items-center justify-between"
+        style={{
+          background: 'rgba(10,10,11,0.9)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        {/* Logo */}
+        <Link to={dashboardPath} className="flex items-center gap-2 no-underline">
+          <span className="text-lg">🔒</span>
+          <span className="text-base font-bold text-white tracking-tight">SafeLancer</span>
+          <span
+            className="text-[9px] px-1.5 py-0.5 rounded font-semibold tracking-wider uppercase"
+            style={{ background: 'rgba(139,92,246,0.2)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}
+          >
+            Beta
+          </span>
         </Link>
+
         {user && (
           <div className="flex items-center gap-5">
-            <Link to={dashboardPath} className="text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors">Home</Link>
+            <Link to={dashboardPath} style={linkStyle(dashboardPath)}
+              onMouseEnter={e => e.currentTarget.style.color = '#d4d4d8'}
+              onMouseLeave={e => e.currentTarget.style.color = isActive(dashboardPath) ? '#A78BFA' : '#71717a'}>
+              Home
+            </Link>
 
             {/* Jobs section — hidden for admin */}
             {user.role !== 'admin' && (
               user.role === 'client' ? (
                 <>
-                  <Link to="/jobs/post" className="text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors">Post Job</Link>
-                  {/* My Jobs dropdown */}
+                  <Link to="/jobs/post" style={linkStyle('/jobs/post')}
+                    onMouseEnter={e => e.currentTarget.style.color = '#d4d4d8'}
+                    onMouseLeave={e => e.currentTarget.style.color = isActive('/jobs/post') ? '#A78BFA' : '#71717a'}>
+                    Post Job
+                  </Link>
+
                   <div className="relative" ref={jobsRef}>
-                    <button onClick={openJobsDropdown}
-                      className={`flex items-center gap-1 text-sm font-medium transition-colors ${jobsOpen ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}>
+                    <button
+                      onClick={openJobsDropdown}
+                      className="flex items-center gap-1 text-sm font-medium transition-colors"
+                      style={{ color: jobsOpen ? '#A78BFA' : '#71717a', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
                       My Jobs
                       <svg className={`w-3.5 h-3.5 transition-transform ${jobsOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
+
                     {jobsOpen && (
-                      <div className="absolute left-0 top-full mt-2 w-72 bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden z-50">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
-                          <p className="text-sm font-semibold text-zinc-900">My Posted Jobs</p>
+                      <div className="absolute left-0 top-full mt-2 w-72 z-50" style={dropdownStyle}>
+                        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                          <p className="text-sm font-semibold text-white">My Posted Jobs</p>
                           <Link to="/dashboard/client" onClick={() => setJobsOpen(false)}
-                            className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors">View all →</Link>
+                            className="text-xs font-medium transition-colors" style={{ color: '#A78BFA' }}>
+                            View all →
+                          </Link>
                         </div>
                         <div className="max-h-80 overflow-y-auto">
                           {jobsLoading ? (
                             <div className="flex justify-center py-6">
-                              <div className="animate-spin h-4 w-4 border-2 border-zinc-900 border-t-transparent rounded-full" />
+                              <div className="animate-spin h-4 w-4 border-2 border-t-transparent rounded-full" style={{ borderColor: '#8B5CF6', borderTopColor: 'transparent' }} />
                             </div>
                           ) : jobs.length === 0 ? (
                             <div className="py-6 text-center">
-                              <p className="text-sm text-zinc-500">No jobs posted yet</p>
+                              <p className="text-sm" style={{ color: '#52525b' }}>No jobs posted yet</p>
                               <Link to="/jobs/post" onClick={() => setJobsOpen(false)}
-                                className="inline-block mt-2 text-xs bg-zinc-900 text-white px-3 py-1.5 rounded-lg font-medium">
+                                className="inline-block mt-2 text-xs px-3 py-1.5 rounded-lg font-medium"
+                                style={{ background: 'rgba(139,92,246,0.2)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}>
                                 Post a Job
                               </Link>
                             </div>
                           ) : jobs.map(j => {
                             const bids = j.bids || []
                             const pending = bids.filter(b => b.status === 'applied').length
-                            const STATUS_COLOR = {
-                              open: 'bg-zinc-100 text-zinc-600',
-                              in_progress: 'bg-zinc-800 text-white',
-                              completed: 'bg-zinc-100 text-zinc-500',
-                              cancelled: 'bg-zinc-100 text-zinc-400',
-                            }
                             return (
                               <Link key={j._id} to={`/jobs/${j._id}`} onClick={() => setJobsOpen(false)}
-                                className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0">
+                                className="flex items-center gap-3 px-4 py-3 transition-colors"
+                                style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: 'inherit', textDecoration: 'none' }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                              >
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-zinc-900 truncate">{j.title}</p>
-                                  <p className="text-xs text-zinc-400 mt-0.5">₹{j.budget?.toLocaleString()} · {bids.length} applicant{bids.length !== 1 ? 's' : ''}{pending > 0 ? ` · ${pending} new` : ''}</p>
+                                  <p className="text-sm font-medium text-white truncate">{j.title}</p>
+                                  <p className="text-xs mt-0.5" style={{ color: '#52525b' }}>
+                                    ₹{j.budget?.toLocaleString()} · {bids.length} applicant{bids.length !== 1 ? 's' : ''}
+                                    {pending > 0 ? ` · ${pending} new` : ''}
+                                  </p>
                                 </div>
-                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize flex-shrink-0 ${STATUS_COLOR[j.status] || 'bg-zinc-100 text-zinc-500'}`}>
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize flex-shrink-0"
+                                  style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA' }}>
                                   {j.status.replace('_', ' ')}
                                 </span>
                               </Link>
@@ -150,15 +201,27 @@ export default function Navbar() {
                   </div>
                 </>
               ) : (
-                <Link to="/jobs" className="text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors">Jobs</Link>
+                <Link to="/jobs" style={linkStyle('/jobs')}
+                  onMouseEnter={e => e.currentTarget.style.color = '#d4d4d8'}
+                  onMouseLeave={e => e.currentTarget.style.color = isActive('/jobs') ? '#A78BFA' : '#71717a'}>
+                  Jobs
+                </Link>
               )
             )}
 
             {/* Profile & Payments — hidden for admin */}
             {user.role !== 'admin' && (
               <>
-                <Link to="/profile/setup" className="text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors">Profile</Link>
-                <Link to="/payments" className="text-zinc-500 hover:text-zinc-900 text-sm font-medium transition-colors">Payments</Link>
+                <Link to="/profile/setup" style={linkStyle('/profile/setup')}
+                  onMouseEnter={e => e.currentTarget.style.color = '#d4d4d8'}
+                  onMouseLeave={e => e.currentTarget.style.color = isActive('/profile/setup') ? '#A78BFA' : '#71717a'}>
+                  Profile
+                </Link>
+                <Link to="/payments" style={linkStyle('/payments')}
+                  onMouseEnter={e => e.currentTarget.style.color = '#d4d4d8'}
+                  onMouseLeave={e => e.currentTarget.style.color = isActive('/payments') ? '#A78BFA' : '#71717a'}>
+                  Payments
+                </Link>
               </>
             )}
 
@@ -167,35 +230,37 @@ export default function Navbar() {
               <div className="relative" ref={badgeRef}>
                 <button
                   onClick={() => setBadgeOpen(v => !v)}
-                  className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
-                    badgeOpen ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'
-                  }`}
+                  className="flex items-center gap-1.5 text-sm font-medium transition-colors"
+                  style={{ color: badgeOpen ? '#A78BFA' : '#71717a', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   <span className="text-base leading-none">🏅</span>
                   {hasAnyBadgeData ? (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded leading-none font-semibold ${
-                      earnedCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-zinc-100 text-zinc-500'
-                    }`}>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded leading-none font-semibold"
+                      style={earnedCount > 0
+                        ? { background: 'rgba(251,191,36,0.15)', color: '#fbbf24' }
+                        : { background: 'rgba(255,255,255,0.08)', color: '#71717a' }
+                      }>
                       {earnedCount}/{totalCount}
                     </span>
                   ) : (
-                    <span className="text-[10px] bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded leading-none font-semibold">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded leading-none font-semibold"
+                      style={{ background: 'rgba(255,255,255,0.08)', color: '#71717a' }}>
                       Badges
                     </span>
                   )}
                 </button>
 
                 {badgeOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl border border-zinc-200 shadow-lg overflow-hidden z-50">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
+                  <div className="absolute right-0 top-full mt-2 w-80 z-50" style={dropdownStyle}>
+                    <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                       <div>
-                        <p className="text-sm font-semibold text-zinc-900">Badges & Achievements</p>
+                        <p className="text-sm font-semibold text-white">Badges & Achievements</p>
                         {hasAnyBadgeData && (
-                          <p className="text-xs text-zinc-400 mt-0.5">{earnedCount} of {totalCount} earned</p>
+                          <p className="text-xs mt-0.5" style={{ color: '#52525b' }}>{earnedCount} of {totalCount} earned</p>
                         )}
                       </div>
                       <Link to="/profile/setup" onClick={() => setBadgeOpen(false)}
-                        className="text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors">
+                        className="text-xs font-medium" style={{ color: '#A78BFA' }}>
                         View profile →
                       </Link>
                     </div>
@@ -204,57 +269,63 @@ export default function Navbar() {
                       {!hasAnyBadgeData ? (
                         <div className="py-6 text-center">
                           <p className="text-2xl mb-2">🏅</p>
-                          <p className="text-sm text-zinc-600 font-medium">No badge data yet</p>
-                          <p className="text-xs text-zinc-400 mt-1">Visit your profile to load your badges</p>
+                          <p className="text-sm font-medium" style={{ color: '#a1a1aa' }}>No badge data yet</p>
+                          <p className="text-xs mt-1" style={{ color: '#52525b' }}>Visit your profile to load your badges</p>
                           <Link to="/profile/setup" onClick={() => setBadgeOpen(false)}
-                            className="inline-block mt-3 text-xs bg-zinc-900 text-white px-3 py-1.5 rounded-lg font-medium">
+                            className="inline-block mt-3 text-xs px-3 py-1.5 rounded-lg font-medium"
+                            style={{ background: 'rgba(139,92,246,0.2)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}>
                             Go to Profile
                           </Link>
                         </div>
-                      ) : (
-                        <>
-                          {earnedBadges.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 px-1 mb-2">Earned</p>
-                              <div className="space-y-1.5">
-                                {earnedBadges.map(badge => {
-                                  const c = BADGE_COLORS[badge.color]
-                                  return (
-                                    <div key={badge.id} className={`flex items-center gap-2.5 border rounded-lg px-3 py-2 ${c.earned}`}>
-                                      <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${c.icon}`}>
-                                        {badge.icon}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="text-xs font-semibold leading-tight">{badge.title}</p>
-                                        <p className="text-[11px] opacity-70 mt-0.5 leading-tight">{badge.description}</p>
-                                      </div>
-                                      <svg className="w-3.5 h-3.5 flex-shrink-0 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
+                      ) : earnedBadges.length > 0 ? (
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider px-1 mb-2" style={{ color: '#52525b' }}>Earned</p>
+                          <div className="space-y-1.5">
+                            {earnedBadges.map(badge => {
+                              const c = BADGE_COLORS[badge.color]
+                              return (
+                                <div key={badge.id} className={`flex items-center gap-2.5 border rounded-lg px-3 py-2 ${c.earned}`}>
+                                  <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${c.icon}`}>
+                                    {badge.icon}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold leading-tight">{badge.title}</p>
+                                    <p className="text-[11px] opacity-70 mt-0.5 leading-tight">{badge.description}</p>
+                                  </div>
+                                  <svg className="w-3.5 h-3.5 flex-shrink-0 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 )}
               </div>
             )}
 
-            <div className="flex items-center gap-3 border-l border-zinc-100 pl-5">
-              <div className="w-7 h-7 bg-zinc-900 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            {/* User info */}
+            <div className="flex items-center gap-3 pl-4" style={{ borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>
                 {user.name?.[0]?.toUpperCase()}
               </div>
               <div>
-                <div className="text-sm font-semibold text-zinc-900 leading-tight">{user.name}</div>
-                <div className="text-[11px] text-zinc-400 capitalize leading-tight">{user.role}</div>
+                <div className="text-sm font-semibold text-white leading-tight">{user.name}</div>
+                <div className="text-[11px] capitalize leading-tight" style={{ color: '#52525b' }}>{user.role}</div>
               </div>
             </div>
-            <button onClick={logout} className="text-sm text-zinc-400 hover:text-red-500 font-medium transition-colors">
+
+            <button
+              onClick={logout}
+              className="text-sm font-medium transition-colors"
+              style={{ color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+              onMouseLeave={e => e.currentTarget.style.color = '#52525b'}
+            >
               Logout
             </button>
           </div>

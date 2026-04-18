@@ -89,34 +89,34 @@ export default function PaymentSettings() {
   const totalEscrow = activeContracts.reduce((sum, c) => sum + (c.amount || 0), 0)
   const totalTransacted = completedContracts.reduce((sum, c) => sum + (c.amount || 0), 0)
 
-  const dashboardPath = isFreelancer ? '/dashboard/freelancer' : '/dashboard/client'
-
   if (loading) return (
-    <div className="min-h-screen bg-zinc-100">
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}>
       <Navbar />
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-6 w-6 border-2 border-zinc-900 border-t-transparent rounded-full" />
+        <div className="animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent rounded-full" />
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-zinc-100">
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}>
       <Navbar />
       {showVerifyModal && (
         <PaymentVerifyModal onClose={() => setShowVerifyModal(false)} onVerified={handleVerified} />
       )}
 
       <div className="max-w-3xl mx-auto p-6 pb-16">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900 font-medium mb-4 transition-colors">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm font-medium mb-4 transition-colors" style={{ color: '#a1a1aa' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
+          onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back
         </button>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-900">Payment Settings</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Manage your payment method and view transaction history</p>
+            <h1 className="text-xl font-semibold text-white">Payment Settings</h1>
+            <p className="text-sm mt-0.5" style={{ color: '#a1a1aa' }}>Manage your payment method and view transaction history</p>
           </div>
         </div>
 
@@ -127,21 +127,21 @@ export default function PaymentSettings() {
             { label: isFreelancer ? 'Total Earned' : 'Total Spent', value: `₹${totalTransacted.toLocaleString()}` },
             { label: 'In Escrow', value: `₹${totalEscrow.toLocaleString()}` },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-xl border border-zinc-200 p-4">
-              <div className="text-2xl font-bold text-zinc-900">{s.value}</div>
-              <div className="text-zinc-500 text-xs mt-0.5">{s.label}</div>
+            <div key={s.label} className="dark-card p-4">
+              <div className="text-2xl font-bold text-white">{s.value}</div>
+              <div className="text-xs mt-0.5" style={{ color: '#a1a1aa' }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Payment verification — clients only */}
         {isClient && (
-          <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
+          <div className="dark-card p-5 mb-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-900">Payment Verification</h2>
+              <h2 className="text-sm font-semibold text-white">Payment Verification</h2>
               {isVerified && (
-                <span className="text-xs bg-zinc-100 text-zinc-700 border border-zinc-200 px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">
-                  <svg className="w-3 h-3 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                   Verified
@@ -149,17 +149,17 @@ export default function PaymentSettings() {
               )}
             </div>
 
-            <div className={`flex items-start gap-4 p-4 rounded-xl border ${isVerified ? 'bg-zinc-50 border-zinc-200' : 'bg-white border-zinc-200'}`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isVerified ? 'bg-zinc-900' : 'bg-zinc-100'}`}>
-                <svg className={`w-5 h-5 ${isVerified ? 'text-white' : 'text-zinc-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-start gap-4 p-4 rounded-xl" style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: isVerified ? 'linear-gradient(135deg, #8B5CF6, #6D28D9)' : 'rgba(255,255,255,0.06)' }}>
+                <svg className={`w-5 h-5 ${isVerified ? 'text-white' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={!isVerified ? { color: '#52525b' } : {}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-zinc-900">
+                <p className="text-sm font-semibold text-white">
                   {isVerified ? 'Payment Method Verified' : 'Payment Method Not Verified'}
                 </p>
-                <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
+                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: '#a1a1aa' }}>
                   {isVerified
                     ? 'Your payment method is verified. Freelancers can see this badge on your profile, which improves bid quality.'
                     : 'Verify your payment method to build trust with freelancers. A ₹1 refundable charge confirms your method is active.'}
@@ -172,8 +172,8 @@ export default function PaymentSettings() {
                       'Faster contract creation and onboarding',
                     ].map(item => (
                       <div key={item} className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full border-2 border-zinc-200 flex-shrink-0" />
-                        <span className="text-xs text-zinc-500">{item}</span>
+                        <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ border: '1.5px solid rgba(255,255,255,0.12)' }} />
+                        <span className="text-xs" style={{ color: '#a1a1aa' }}>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -186,10 +186,10 @@ export default function PaymentSettings() {
                       'Trust established for contract creation',
                     ].map(item => (
                       <div key={item} className="flex items-center gap-2">
-                        <svg className="w-3.5 h-3.5 text-zinc-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#10b981' }}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span className="text-xs text-zinc-600">{item}</span>
+                        <span className="text-xs" style={{ color: '#a1a1aa' }}>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -197,7 +197,7 @@ export default function PaymentSettings() {
               </div>
               {!isVerified && (
                 <button onClick={() => setShowVerifyModal(true)}
-                  className="bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex-shrink-0">
+                  className="btn-purple text-sm font-medium px-4 py-2 rounded-lg transition-colors flex-shrink-0">
                   Verify now
                 </button>
               )}
@@ -205,8 +205,8 @@ export default function PaymentSettings() {
 
             {/* How it works */}
             {!isVerified && (
-              <div className="mt-4 border-t border-zinc-100 pt-4">
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">How it works</p>
+              <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#52525b' }}>How it works</p>
                 <div className="space-y-3">
                   {[
                     { step: '1', title: 'Choose payment method', desc: 'UPI, debit/credit card, or net banking' },
@@ -215,12 +215,12 @@ export default function PaymentSettings() {
                     { step: '4', title: 'Badge applied', desc: 'Payment Verified badge shows on your public profile' },
                   ].map(item => (
                     <div key={item.step} className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: '#8B5CF6' }}>
                         <span className="text-[10px] text-white font-bold">{item.step}</span>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-zinc-800">{item.title}</p>
-                        <p className="text-xs text-zinc-400 mt-0.5">{item.desc}</p>
+                        <p className="text-xs font-semibold text-white">{item.title}</p>
+                        <p className="text-xs mt-0.5" style={{ color: '#52525b' }}>{item.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -232,18 +232,18 @@ export default function PaymentSettings() {
 
         {/* Freelancer payout details */}
         {isFreelancer && (
-          <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
+          <div className="dark-card p-5 mb-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-900">Payout Details</h2>
+              <h2 className="text-sm font-semibold text-white">Payout Details</h2>
               {portfolio?.paymentVerified ? (
-                <span className="text-xs bg-zinc-900 text-white px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5">
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                   Verified
                 </span>
               ) : (
-                <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full font-medium">
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>
                   Not Verified
                 </span>
               )}
@@ -251,16 +251,16 @@ export default function PaymentSettings() {
 
             {/* No details yet */}
             {!portfolio?.payoutDetailsAdded && !editingPayout && (
-              <div className="text-center py-6 border border-dashed border-zinc-200 rounded-xl mb-3">
-                <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center py-6 rounded-xl mb-3" style={{ border: '1px dashed rgba(255,255,255,0.1)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#52525b' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
                 </div>
-                <p className="text-sm text-zinc-600 font-medium">No payout account added</p>
-                <p className="text-xs text-zinc-400 mt-1 mb-4">Add your UPI ID or bank account to receive milestone payments</p>
+                <p className="text-sm font-medium text-white">No payout account added</p>
+                <p className="text-xs mt-1 mb-4" style={{ color: '#52525b' }}>Add your UPI ID or bank account to receive milestone payments</p>
                 <button onClick={() => setEditingPayout(true)}
-                  className="bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors">
+                  className="btn-purple text-sm font-medium px-5 py-2 rounded-lg transition-colors">
                   Add payout details
                 </button>
               </div>
@@ -268,39 +268,42 @@ export default function PaymentSettings() {
 
             {/* Saved details display */}
             {portfolio?.payoutDetailsAdded && !editingPayout && (
-              <div className={`rounded-xl border p-4 mb-3 ${portfolio.paymentVerified ? 'bg-zinc-50 border-zinc-200' : 'bg-amber-50 border-amber-100'}`}>
+              <div className="rounded-xl p-4 mb-3" style={{ background: '#1a1a1d', border: `1px solid ${portfolio.paymentVerified ? 'rgba(255,255,255,0.06)' : 'rgba(245,158,11,0.2)'}` }}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${portfolio.paymentVerified ? 'bg-zinc-900' : 'bg-amber-100'}`}>
-                    <svg className={`w-5 h-5 ${portfolio.paymentVerified ? 'text-white' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: portfolio.paymentVerified ? 'linear-gradient(135deg, #8B5CF6, #6D28D9)' : 'rgba(245,158,11,0.1)' }}>
+                    <svg className={`w-5 h-5 ${portfolio.paymentVerified ? 'text-white' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" style={!portfolio.paymentVerified ? { color: '#f59e0b' } : {}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-zinc-900">{portfolio.payoutMethod === 'bank' ? 'Bank Transfer' : 'UPI'}</p>
+                    <p className="text-sm font-semibold text-white">{portfolio.payoutMethod === 'bank' ? 'Bank Transfer' : 'UPI'}</p>
                     {portfolio.payoutMethod === 'upi' ? (
-                      <p className="text-xs text-zinc-500 mt-0.5">UPI ID: <span className="font-medium text-zinc-700">{portfolio.upiId}</span></p>
+                      <p className="text-xs mt-0.5" style={{ color: '#a1a1aa' }}>UPI ID: <span className="font-medium text-white">{portfolio.upiId}</span></p>
                     ) : (
-                      <div className="text-xs text-zinc-500 mt-0.5 space-y-0.5">
-                        <p>Account: <span className="font-medium text-zinc-700">****{portfolio.bankAccountNumber?.slice(-4)}</span></p>
-                        <p>IFSC: <span className="font-medium text-zinc-700">{portfolio.ifscCode}</span> · Name: <span className="font-medium text-zinc-700">{portfolio.accountHolderName}</span></p>
+                      <div className="text-xs mt-0.5 space-y-0.5" style={{ color: '#a1a1aa' }}>
+                        <p>Account: <span className="font-medium text-white">****{portfolio.bankAccountNumber?.slice(-4)}</span></p>
+                        <p>IFSC: <span className="font-medium text-white">{portfolio.ifscCode}</span> · Name: <span className="font-medium text-white">{portfolio.accountHolderName}</span></p>
                       </div>
                     )}
                   </div>
                   <button onClick={() => { setEditingPayout(true) }}
-                    className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0">
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#a1a1aa' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     Edit
                   </button>
                 </div>
 
                 {/* Verify prompt */}
                 {!portfolio.paymentVerified && (
-                  <div className="mt-3 pt-3 border-t border-amber-100 flex items-center justify-between gap-3">
+                  <div className="mt-3 pt-3 flex items-center justify-between gap-3" style={{ borderTop: '1px solid rgba(245,158,11,0.15)' }}>
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-amber-800">Account not yet verified</p>
-                      <p className="text-xs text-amber-600 mt-0.5">Verify to confirm your account and unlock the Verified badge on your profile</p>
+                      <p className="text-xs font-medium" style={{ color: '#f59e0b' }}>Account not yet verified</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#a1a1aa' }}>Verify to confirm your account and unlock the Verified badge on your profile</p>
                     </div>
                     <button onClick={verifyPayoutDetails} disabled={verifyLoading}
-                      className="bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors flex-shrink-0 flex items-center gap-1.5">
+                      className="btn-purple disabled:opacity-50 text-xs font-semibold px-4 py-2 rounded-lg transition-colors flex-shrink-0 flex items-center gap-1.5">
                       {verifyLoading ? (
                         <><div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" /> Verifying…</>
                       ) : (
@@ -312,10 +315,10 @@ export default function PaymentSettings() {
 
                 {/* Already verified confirmation */}
                 {portfolio.paymentVerified && (
-                  <div className="mt-3 pt-3 border-t border-zinc-200 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-zinc-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="mt-3 pt-3 flex items-center gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#10b981' }}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                    <p className="text-xs text-zinc-600">Account verified — you will receive payouts at this address when milestones are released</p>
+                    <p className="text-xs" style={{ color: '#a1a1aa' }}>Account verified — you will receive payouts at this address when milestones are released</p>
                   </div>
                 )}
               </div>
@@ -323,12 +326,16 @@ export default function PaymentSettings() {
 
             {/* Add / Edit form */}
             {editingPayout && (
-              <div className="border border-zinc-200 rounded-xl p-4 space-y-4 mb-3">
-                <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">Select payout method</p>
+              <div className="rounded-xl p-4 space-y-4 mb-3" style={{ border: '1px solid rgba(255,255,255,0.08)', background: '#1a1a1d' }}>
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#a1a1aa' }}>Select payout method</p>
                 <div className="flex gap-2">
                   {['upi', 'bank'].map(m => (
                     <button key={m} onClick={() => setPayoutForm(f => ({ ...f, payoutMethod: m }))}
-                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${payoutForm.payoutMethod === m ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'}`}>
+                      className="flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-colors"
+                      style={payoutForm.payoutMethod === m
+                        ? { background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', color: '#fff', border: 'none' }
+                        : { background: 'transparent', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)' }
+                      }>
                       {m === 'upi' ? 'UPI' : 'Bank Transfer'}
                     </button>
                   ))}
@@ -336,47 +343,50 @@ export default function PaymentSettings() {
 
                 {payoutForm.payoutMethod === 'upi' && (
                   <div>
-                    <label className="block text-xs font-medium text-zinc-700 mb-1.5">UPI ID</label>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>UPI ID</label>
                     <input type="text" value={payoutForm.upiId} placeholder="yourname@upi or phone@okaxis"
                       onChange={e => setPayoutForm(f => ({ ...f, upiId: e.target.value }))}
-                      className="w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300" />
-                    <p className="text-xs text-zinc-400 mt-1">Must contain @ — e.g. name@upi, number@paytm</p>
+                      className="dark-input w-full" />
+                    <p className="text-xs mt-1" style={{ color: '#52525b' }}>Must contain @ — e.g. name@upi, number@paytm</p>
                   </div>
                 )}
 
                 {payoutForm.payoutMethod === 'bank' && (
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-zinc-700 mb-1.5">Account Holder Name</label>
+                      <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>Account Holder Name</label>
                       <input type="text" value={payoutForm.accountHolderName} placeholder="Full name as on bank records"
                         onChange={e => setPayoutForm(f => ({ ...f, accountHolderName: e.target.value }))}
-                        className="w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300" />
+                        className="dark-input w-full" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-zinc-700 mb-1.5">Account Number</label>
+                      <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>Account Number</label>
                       <input type="text" value={payoutForm.bankAccountNumber} placeholder="9–18 digit account number"
                         onChange={e => setPayoutForm(f => ({ ...f, bankAccountNumber: e.target.value.replace(/\D/g, '') }))}
-                        className="w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300" />
+                        className="dark-input w-full" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-zinc-700 mb-1.5">IFSC Code</label>
+                      <label className="block text-xs font-medium mb-1.5" style={{ color: '#a1a1aa' }}>IFSC Code</label>
                       <input type="text" value={payoutForm.ifscCode} placeholder="e.g. HDFC0001234"
                         maxLength={11}
                         onChange={e => setPayoutForm(f => ({ ...f, ifscCode: e.target.value.toUpperCase() }))}
-                        className="w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-300 uppercase" />
-                      <p className="text-xs text-zinc-400 mt-1">4 letters + 0 + 6 alphanumeric — e.g. HDFC0001234</p>
+                        className="dark-input w-full uppercase" />
+                      <p className="text-xs mt-1" style={{ color: '#52525b' }}>4 letters + 0 + 6 alphanumeric — e.g. HDFC0001234</p>
                     </div>
                   </div>
                 )}
 
                 <div className="flex gap-2 pt-1">
                   <button onClick={savePayoutDetails} disabled={payoutLoading || !payoutForm.payoutMethod}
-                    className="flex-1 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors">
+                    className="btn-purple flex-1 disabled:opacity-50 text-sm font-semibold py-2.5 rounded-lg transition-colors">
                     {payoutLoading ? 'Saving...' : 'Save details'}
                   </button>
                   {portfolio?.payoutDetailsAdded && (
                     <button onClick={() => setEditingPayout(false)}
-                      className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                      className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                      style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#a1a1aa' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       Cancel
                     </button>
                   )}
@@ -384,99 +394,105 @@ export default function PaymentSettings() {
               </div>
             )}
 
-            <p className="text-xs text-zinc-400">Payouts are processed via Razorpay after each milestone is released.</p>
+            <p className="text-xs" style={{ color: '#52525b' }}>Payouts are processed via Razorpay after each milestone is released.</p>
           </div>
         )}
 
         {/* Escrow & Active Contracts */}
-        <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-4">
-          <h2 className="text-sm font-semibold text-zinc-900 mb-4">Active Escrow</h2>
+        <div className="dark-card p-5 mb-4">
+          <h2 className="text-sm font-semibold text-white mb-4">Active Escrow</h2>
           {activeContracts.length === 0 ? (
             <div className="text-center py-6">
-              <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#52525b' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <p className="text-sm text-zinc-500">No active escrow</p>
-              <p className="text-xs text-zinc-400 mt-1">Funds will appear here once a contract is funded</p>
+              <p className="text-sm" style={{ color: '#a1a1aa' }}>No active escrow</p>
+              <p className="text-xs mt-1" style={{ color: '#52525b' }}>Funds will appear here once a contract is funded</p>
             </div>
           ) : (
             <div className="space-y-2">
               {activeContracts.map(c => (
-                <div key={c._id} className="flex items-center gap-3 border border-zinc-100 rounded-xl px-4 py-3 bg-zinc-50">
-                  <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div key={c._id} className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-zinc-900 truncate">{c.job?.title || 'Contract'}</p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-sm font-semibold text-white truncate">{c.job?.title || 'Contract'}</p>
+                    <p className="text-xs" style={{ color: '#a1a1aa' }}>
                       {isFreelancer ? `with ${c.client?.name}` : `with ${c.freelancer?.name}`} · {c.milestoneCount} phases
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-zinc-900">₹{c.amount?.toLocaleString()}</p>
-                    <p className="text-xs text-zinc-400">in escrow</p>
+                    <p className="text-sm font-bold text-white">₹{c.amount?.toLocaleString()}</p>
+                    <p className="text-xs" style={{ color: '#52525b' }}>in escrow</p>
                   </div>
                   <Link to={`/contracts/${c._id}`}
-                    className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0">
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#a1a1aa' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
                     View
                   </Link>
                 </div>
               ))}
-              <div className="flex items-center justify-between pt-2 border-t border-zinc-100 mt-2 px-1">
-                <span className="text-xs text-zinc-500 font-medium">Total in escrow</span>
-                <span className="text-sm font-bold text-zinc-900">₹{totalEscrow.toLocaleString()}</span>
+              <div className="flex items-center justify-between pt-2 mt-2 px-1" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <span className="text-xs font-medium" style={{ color: '#a1a1aa' }}>Total in escrow</span>
+                <span className="text-sm font-bold text-white">₹{totalEscrow.toLocaleString()}</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Transaction History */}
-        <div className="bg-white rounded-xl border border-zinc-200 p-5">
-          <h2 className="text-sm font-semibold text-zinc-900 mb-4">Transaction History</h2>
+        <div className="dark-card p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Transaction History</h2>
           {completedContracts.length === 0 ? (
             <div className="text-center py-6">
-              <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#52525b' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <p className="text-sm text-zinc-500">No completed transactions yet</p>
-              <p className="text-xs text-zinc-400 mt-1">Completed contracts will appear here</p>
+              <p className="text-sm" style={{ color: '#a1a1aa' }}>No completed transactions yet</p>
+              <p className="text-xs mt-1" style={{ color: '#52525b' }}>Completed contracts will appear here</p>
             </div>
           ) : (
             <div className="space-y-2">
               {completedContracts.map(c => (
-                <div key={c._id} className="flex items-center gap-3 border border-zinc-100 rounded-xl px-4 py-3">
-                  <div className="w-9 h-9 bg-zinc-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div key={c._id} className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(16,185,129,0.1)' }}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#10b981' }}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-zinc-900 truncate">{c.job?.title || 'Contract'}</p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-sm font-semibold text-white truncate">{c.job?.title || 'Contract'}</p>
+                    <p className="text-xs" style={{ color: '#a1a1aa' }}>
                       {isFreelancer ? `from ${c.client?.name}` : `to ${c.freelancer?.name}`} · Completed
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className={`text-sm font-bold ${isFreelancer ? 'text-zinc-900' : 'text-zinc-900'}`}>
+                    <p className="text-sm font-bold text-white">
                       {isFreelancer ? '+' : '-'}₹{c.amount?.toLocaleString()}
                     </p>
-                    <p className="text-xs text-zinc-400">released</p>
+                    <p className="text-xs" style={{ color: '#52525b' }}>released</p>
                   </div>
                   <Link to={`/contracts/${c._id}`}
-                    className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0">
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#a1a1aa' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
                     View
                   </Link>
                 </div>
               ))}
-              <div className="flex items-center justify-between pt-2 border-t border-zinc-100 mt-2 px-1">
-                <span className="text-xs text-zinc-500 font-medium">Total {isFreelancer ? 'earned' : 'spent'}</span>
-                <span className="text-sm font-bold text-zinc-900">₹{totalTransacted.toLocaleString()}</span>
+              <div className="flex items-center justify-between pt-2 mt-2 px-1" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <span className="text-xs font-medium" style={{ color: '#a1a1aa' }}>Total {isFreelancer ? 'earned' : 'spent'}</span>
+                <span className="text-sm font-bold text-white">₹{totalTransacted.toLocaleString()}</span>
               </div>
             </div>
           )}

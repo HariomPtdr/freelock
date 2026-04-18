@@ -4,8 +4,39 @@ import api from '../api'
 import Navbar from '../components/Navbar'
 import toast from 'react-hot-toast'
 import { calcCompletion } from '../utils/profileCompletion'
+import { useCountUp } from '../utils/useCountUp'
 
 const FILE_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001'
+
+function StatCard({ label, value, accent }) {
+  const numeric = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^0-9.]/g, '')) || 0
+  const prefix = typeof value === 'string' && value.startsWith('₹') ? '₹' : ''
+  const animated = useCountUp(numeric, 1200, prefix)
+
+  return (
+    <div
+      className="dark-card card-lift p-4"
+      style={accent ? {
+        background: 'linear-gradient(135deg, rgba(139,92,246,0.2) 0%, rgba(109,40,217,0.1) 100%)',
+        border: '1px solid rgba(139,92,246,0.3)',
+      } : {}}
+    >
+      <div
+        className="text-2xl font-bold stat-number mb-0.5"
+        style={{ color: accent ? '#A78BFA' : '#fff' }}
+      >
+        {animated}
+      </div>
+      <div className="text-xs" style={{ color: '#71717a' }}>{label}</div>
+    </div>
+  )
+}
+
+const sectionLabel = (text) => (
+  <h2 className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: '#52525b' }}>
+    {text}
+  </h2>
+)
 
 export default function ClientDashboard() {
   const [contracts, setContracts] = useState([])
@@ -64,7 +95,7 @@ export default function ClientDashboard() {
           } catch { toast.error('Payment verification failed.') }
         },
         prefill: { name: user.name, email: user.email },
-        theme: { color: '#09090b' },
+        theme: { color: '#8B5CF6' },
         modal: { ondismiss: () => toast('Payment cancelled. Go to the contract to complete advance payment.') }
       }
       const rzp = new window.Razorpay(options)
@@ -93,112 +124,130 @@ export default function ClientDashboard() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-zinc-100"><Navbar />
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-6 w-6 border-2 border-zinc-900 border-t-transparent rounded-full" />
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}>
+      <Navbar />
+      <div className="flex items-center justify-center h-64 flex-col gap-4">
+        <div className="w-48 h-4 shimmer-skeleton" />
+        <div className="w-32 h-3 shimmer-skeleton" />
+        <div className="grid grid-cols-5 gap-3 mt-4 w-full max-w-2xl px-6">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-20 shimmer-skeleton rounded-xl" />
+          ))}
+        </div>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-zinc-100">
+    <div className="min-h-screen" style={{ background: '#0a0a0b' }}>
       <Navbar />
       <div className="max-w-5xl mx-auto p-6">
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 animate-fade-in-up">
           <div>
-            <h1 className="text-xl font-semibold text-zinc-900">Welcome, {user.name}</h1>
-            <p className="text-zinc-500 text-sm">Manage your contracts and jobs</p>
+            <h1 className="text-xl font-semibold text-white">Welcome, {user.name}</h1>
+            <p className="text-sm mt-0.5" style={{ color: '#52525b' }}>Manage your contracts and jobs</p>
           </div>
-          <div className="flex gap-2">
-            <Link to="/jobs/post" className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">
-              + Post Job
-            </Link>
-          </div>
+          <Link
+            to="/jobs/post"
+            className="btn-purple px-4 py-2 text-sm"
+          >
+            + Post Job
+          </Link>
         </div>
 
-        {/* My Profile */}
+        {/* Profile card */}
         {portfolio !== null && (
-          <div className="bg-white rounded-xl border border-zinc-200 p-4 mb-6 flex items-center gap-4">
-            {/* Avatar */}
+          <div className="dark-card p-4 mb-6 flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
             {portfolio?.avatarUrl
-              ? <img src={portfolio.avatarUrl.startsWith('http') ? portfolio.avatarUrl : `${FILE_BASE}${portfolio.avatarUrl}`}
-                  alt="avatar" className="w-12 h-12 rounded-xl object-cover border border-zinc-200 flex-shrink-0" />
-              : <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
+              ? <img
+                  src={portfolio.avatarUrl.startsWith('http') ? portfolio.avatarUrl : `${FILE_BASE}${portfolio.avatarUrl}`}
+                  alt="avatar"
+                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                />
+              : <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>
                   {user.name?.[0]?.toUpperCase()}
                 </div>
             }
-            {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-sm font-semibold text-zinc-900">{user.name}</span>
+                <span className="text-sm font-semibold text-white">{user.name}</span>
                 {portfolio?.clientType && (
-                  <span className="text-[10px] bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md font-medium capitalize border border-zinc-200">
-                    {portfolio.clientType}
-                  </span>
+                  <span className="badge badge-purple capitalize">{portfolio.clientType}</span>
                 )}
               </div>
               {portfolio?.bio
-                ? <p className="text-xs text-zinc-500 line-clamp-1">{portfolio.bio}</p>
-                : <p className="text-xs text-zinc-400 italic">No bio yet — complete your profile</p>
+                ? <p className="text-xs line-clamp-1" style={{ color: '#71717a' }}>{portfolio.bio}</p>
+                : <p className="text-xs italic" style={{ color: '#52525b' }}>No bio yet — complete your profile</p>
               }
-              {/* Completion bar */}
               <div className="flex items-center gap-2 mt-1.5">
-                <div className="flex-1 bg-zinc-100 rounded-full h-1 overflow-hidden">
-                  <div className="bg-zinc-900 h-1 rounded-full transition-all" style={{ width: `${calcCompletion('client', portfolio)}%` }} />
+                <div className="flex-1 rounded-full h-1 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                  <div
+                    className="h-1 rounded-full transition-all"
+                    style={{ width: `${calcCompletion('client', portfolio)}%`, background: 'linear-gradient(90deg, #8B5CF6, #A78BFA)' }}
+                  />
                 </div>
-                <span className="text-[10px] text-zinc-400 font-medium flex-shrink-0">{calcCompletion('client', portfolio)}% complete</span>
+                <span className="text-[10px] font-medium flex-shrink-0" style={{ color: '#52525b' }}>
+                  {calcCompletion('client', portfolio)}% complete
+                </span>
               </div>
             </div>
-            {/* Actions */}
-            <div className="flex gap-2 flex-shrink-0">
-              <Link to="/profile/setup" className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
-                Edit Profile
-              </Link>
-            </div>
+            <Link
+              to="/profile/setup"
+              className="btn-purple text-xs font-medium px-3 py-1.5 flex-shrink-0"
+            >
+              Edit Profile
+            </Link>
           </div>
         )}
 
         {/* Stats */}
         <div className="grid grid-cols-5 gap-3 mb-6">
-          {[
-            { label: 'Active Contracts', value: activeContracts.length },
-            { label: 'Total Value', value: `₹${totalValue.toLocaleString()}` },
-            { label: 'Open Jobs', value: openJobs.length },
-            { label: 'Shortlisted', value: awaitingDecision.length },
-            { label: 'To Review', value: toReview },
-          ].map(s => (
-            <div key={s.label} className="bg-white rounded-xl border border-zinc-200 p-4">
-              <div className="text-2xl font-bold text-zinc-900">{s.value}</div>
-              <div className="text-zinc-500 text-xs mt-0.5">{s.label}</div>
-            </div>
-          ))}
+          <StatCard label="Active Contracts" value={activeContracts.length} accent />
+          <StatCard label="Total Value" value={totalValue} />
+          <StatCard label="Open Jobs" value={openJobs.length} />
+          <StatCard label="Shortlisted" value={awaitingDecision.length} />
+          <StatCard label="To Review" value={toReview} />
         </div>
 
         {/* Awaiting Decision */}
         {awaitingDecision.length > 0 && (
           <section className="mb-6">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Shortlisted — Awaiting Decision</h2>
+            {sectionLabel('Shortlisted — Awaiting Decision')}
             {awaitingDecision.map(b => {
               const isLoading = (suf) => actionLoading === b._id + suf
               return (
-                <div key={b._id} className="bg-white rounded-xl border border-zinc-200 p-4 mb-2 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div key={b._id} className="dark-card card-lift p-4 mb-2 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                    style={{ background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.3)' }}>
+                    <svg className="w-5 h-5" fill="none" stroke="#A78BFA" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-zinc-900">{b.freelancer?.name}</div>
-                    <div className="text-sm text-zinc-500">{b.job.title} · ₹{b.job.budget?.toLocaleString()}{b.freelancer?.rating > 0 ? ` · ★ ${b.freelancer.rating}` : ''}</div>
+                    <div className="font-semibold text-sm text-white">{b.freelancer?.name}</div>
+                    <div className="text-sm mt-0.5" style={{ color: '#71717a' }}>
+                      {b.job.title} · ₹{b.job.budget?.toLocaleString()}
+                      {b.freelancer?.rating > 0 && ` · ★ ${b.freelancer.rating}`}
+                    </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
-                    <button onClick={() => quickAction(b.job._id, b._id, 'hire')} disabled={isLoading('hire')}
-                      className="bg-zinc-900 hover:bg-zinc-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50">
-                      {isLoading('hire') ? '...' : 'Hire'}
+                    <button
+                      onClick={() => quickAction(b.job._id, b._id, 'hire')}
+                      disabled={isLoading('hire')}
+                      className="btn-purple px-3 py-1.5 text-sm"
+                    >
+                      {isLoading('hire') ? '…' : 'Hire'}
                     </button>
-                    <button onClick={() => quickAction(b.job._id, b._id, 'reject')} disabled={isLoading('reject')}
-                      className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-500 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50">
+                    <button
+                      onClick={() => quickAction(b.job._id, b._id, 'reject')}
+                      disabled={isLoading('reject')}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#71717a' }}
+                    >
                       Reject
                     </button>
                   </div>
@@ -210,21 +259,32 @@ export default function ClientDashboard() {
 
         {/* Active Contracts */}
         <section className="mb-6">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Active Contracts</h2>
+          {sectionLabel('Active Contracts')}
           {activeContracts.length === 0
-            ? <div className="bg-white rounded-xl border border-zinc-200 p-6 text-center text-zinc-400 text-sm">No active contracts yet</div>
+            ? <div className="dark-card p-6 text-center text-sm" style={{ color: '#52525b' }}>
+                No active contracts yet
+              </div>
             : activeContracts.map(c => (
-              <div key={c._id} className="bg-white rounded-xl border border-zinc-200 p-4 mb-2 flex items-center gap-4">
-                <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div key={c._id} className="dark-card card-lift p-4 mb-2 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)' }}>
+                  <svg className="w-5 h-5" fill="none" stroke="#8B5CF6" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm text-zinc-900">{c.job?.title || 'Contract'}</div>
-                  <div className="text-sm text-zinc-500">with {c.freelancer?.name} · ₹{c.amount?.toLocaleString()} · {c.milestoneCount} phases</div>
+                  <div className="font-semibold text-sm text-white">{c.job?.title || 'Contract'}</div>
+                  <div className="text-sm mt-0.5" style={{ color: '#71717a' }}>
+                    with {c.freelancer?.name} · ₹{c.amount?.toLocaleString()} · {c.milestoneCount} phases
+                  </div>
                 </div>
-                <Link to={`/contracts/${c._id}`} className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0">
+                <Link
+                  to={`/contracts/${c._id}`}
+                  className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex-shrink-0"
+                  style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)', color: '#A78BFA' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.25)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.15)' }}
+                >
                   View Contract
                 </Link>
               </div>
@@ -234,11 +294,11 @@ export default function ClientDashboard() {
 
         {/* Posted Jobs */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">My Posted Jobs</h2>
+          {sectionLabel('My Posted Jobs')}
           {jobs.length === 0
-            ? <div className="bg-white rounded-xl border border-zinc-200 p-6 text-center text-zinc-400 text-sm">
+            ? <div className="dark-card p-6 text-center text-sm" style={{ color: '#52525b' }}>
                 No jobs yet.{' '}
-                <Link to="/jobs/post" className="text-zinc-900 font-medium underline underline-offset-2">Post your first job</Link>
+                <Link to="/jobs/post" className="font-medium" style={{ color: '#A78BFA' }}>Post your first job</Link>
               </div>
             : jobs.map(j => {
               const bids = j.bids || []
@@ -248,23 +308,32 @@ export default function ClientDashboard() {
                 hired: bids.filter(b => b.status === 'hired').length,
               }
               return (
-                <div key={j._id} className="bg-white rounded-xl border border-zinc-200 p-4 mb-2 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div key={j._id} className="dark-card card-lift p-4 mb-2 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <svg className="w-5 h-5" fill="none" stroke="#71717a" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-zinc-900">{j.title}</div>
-                    <div className="text-sm text-zinc-500 mt-0.5">₹{j.budget?.toLocaleString()} · <span className="capitalize">{j.status}</span></div>
-                    <div className="flex gap-3 mt-1.5 text-xs text-zinc-400">
+                    <div className="font-semibold text-sm text-white">{j.title}</div>
+                    <div className="text-sm mt-0.5" style={{ color: '#71717a' }}>
+                      ₹{j.budget?.toLocaleString()} · <span className="capitalize">{j.status}</span>
+                    </div>
+                    <div className="flex gap-3 mt-1.5 text-xs" style={{ color: '#52525b' }}>
                       {counts.applied > 0 && <span>{counts.applied} applied</span>}
-                      {counts.shortlisted > 0 && <span className="text-zinc-600">{counts.shortlisted} shortlisted</span>}
-                      {counts.hired > 0 && <span className="text-zinc-700">{counts.hired} hired</span>}
+                      {counts.shortlisted > 0 && <span style={{ color: '#A78BFA' }}>{counts.shortlisted} shortlisted</span>}
+                      {counts.hired > 0 && <span style={{ color: '#22c55e' }}>{counts.hired} hired</span>}
                       {bids.length === 0 && <span>No applications yet</span>}
                     </div>
                   </div>
-                  <Link to={`/jobs/${j._id}`} className="border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0">
+                  <Link
+                    to={`/jobs/${j._id}`}
+                    className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex-shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#a1a1aa' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                  >
                     Manage
                   </Link>
                 </div>
