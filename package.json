@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@realitydefender/realitydefender": "^0.1.16",
+    "dotenv": "^17.4.2"
+  }
+}

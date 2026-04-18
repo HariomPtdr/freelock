@@ -229,7 +229,7 @@ export default function JobDetail() {
                     <p className="text-sm font-medium text-white truncate">{f.originalName}</p>
                     <p className="text-xs font-mono truncate" style={{ color: '#52525b' }}>{f.fileHash}</p>
                   </div>
-                  <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${f.url}`}
+                  <a href={f.url?.startsWith('http') ? f.url : `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${f.url}`}
                     target="_blank" rel="noopener noreferrer"
                     className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
                     style={{ color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent' }}

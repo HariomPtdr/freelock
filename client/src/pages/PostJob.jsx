@@ -487,7 +487,7 @@ export default function PostJob() {
           </div>
 
         </form>
-      </div>
+    </div>
     </div>
   )
 }

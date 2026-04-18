@@ -51,7 +51,14 @@ const milestoneSchema = new mongoose.Schema({
   freelancerFee:      { type: Number, default: 0 },
   platformFee:        { type: Number, default: 0 },
   clientTotal:        { type: Number, default: 0 },
-  freelancerPayout:   { type: Number, default: 0 }
+  freelancerPayout:   { type: Number, default: 0 },
+
+  // RealityDefender deepfake / AI-generated video detection
+  rdRequestId:    { type: String, default: null },   // RD requestId for polling
+  rdStatus:       { type: String, default: null },   // AUTHENTIC | FAKE | SUSPICIOUS | UNABLE_TO_EVALUATE | NOT_APPLICABLE | PENDING
+  rdScore:        { type: Number, default: null },   // 0-100 (higher = more likely AI/fake)
+  rdAnalyzedAt:   { type: Date,   default: null },   // when the analysis completed
+  rdSimulated:    { type: Boolean, default: false }, // true if free-tier fallback was used
 }, { timestamps: true });
 
 milestoneSchema.index({ contract: 1, isAdvance: 1 });

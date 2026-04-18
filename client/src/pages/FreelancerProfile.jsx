@@ -245,20 +245,7 @@ export default function FreelancerProfile() {
           )}
         </div>
 
-        {/* ── Resume ── */}
-        {profile.resumeUrl && (
-          <div className="dark-card p-5 mb-4">
-            <h2 className="text-sm font-semibold text-white mb-3">Resume</h2>
-            <a href={`${FILE_BASE}${profile.resumeUrl}`} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-2.5 font-medium text-sm px-4 py-2.5 rounded-xl transition-colors"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', background: '#1a1a1d', color: '#a1a1aa' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
-              onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
-              {Icons.download}
-              Download Resume (PDF)
-            </a>
-          </div>
-        )}
+       
 
         {/* ── Portfolio Samples ── */}
         {profile.projectSamples?.length > 0 && (
@@ -281,7 +268,7 @@ export default function FreelancerProfile() {
                     {sample.description
                       ? <p className="text-xs mt-0.5 truncate" style={{ color: '#a1a1aa' }}>{sample.description}</p>
                       : sample.fileUrl && (
-                        <a href={`${FILE_BASE}${sample.fileUrl}`} target="_blank" rel="noreferrer"
+                        <a href={sample.fileUrl.startsWith('http') ? sample.fileUrl : `${FILE_BASE}${sample.fileUrl}`} target="_blank" rel="noreferrer"
                           className="text-xs mt-0.5 truncate block transition-colors" style={{ color: '#a1a1aa' }}
                           onMouseEnter={e => e.currentTarget.style.color = '#A78BFA'}
                           onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>
@@ -292,7 +279,7 @@ export default function FreelancerProfile() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {sample.description && sample.fileUrl && (
-                      <a href={`${FILE_BASE}${sample.fileUrl}`} target="_blank" rel="noreferrer"
+                      <a href={sample.fileUrl.startsWith('http') ? sample.fileUrl : `${FILE_BASE}${sample.fileUrl}`} target="_blank" rel="noreferrer"
                         className="text-xs font-medium transition-colors" style={{ color: '#a1a1aa' }}
                         onMouseEnter={e => e.currentTarget.style.color = '#A78BFA'}
                         onMouseLeave={e => e.currentTarget.style.color = '#a1a1aa'}>

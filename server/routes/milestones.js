@@ -8,9 +8,10 @@ const Job = require('../models/Job');
 const Dispute = require('../models/Dispute');
 const auth = require('../middleware/auth');
 const { milestoneTransition } = require('../services/stateMachine');
+const { analyzeVideo } = require('../utils/realityDefender');
+const { uploadToImageKit } = require('../utils/imagekit');
 const { performRelease } = require('../services/releaseService');
 const isTestMode = require('../utils/isTestMode');
-const { uploadToImageKit } = require('../utils/imagekit');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
 
@@ -180,11 +181,150 @@ router.post('/:id/submit', auth, upload.fields([{ name: 'file', maxCount: 1 }, {
     }
     await milestone.save();
 
+    // Fire-and-forget: run deepfake detection in background so freelancer gets instant response
+    if (files.video?.[0]) {
+      const videoBuffer = files.video[0].buffer;
+      const videoMime   = files.video[0].mimetype || 'video/mp4';
+      const videoName   = files.video[0].originalname || 'demo.mp4';
+      const milestoneId = milestone._id;
+
+      // Mark as PENDING immediately so client can see it
+      await Milestone.findByIdAndUpdate(milestoneId, { rdStatus: 'PENDING' });
+
+      setImmediate(async () => {
+        try {
+          const result = await analyzeVideo(videoBuffer, videoName, videoMime);
+          if (result) {
+            await Milestone.findByIdAndUpdate(milestoneId, {
+              rdRequestId:  result.requestId,
+              rdStatus:     result.status,
+              rdScore:      result.score,
+              rdAnalyzedAt: new Date(),
+              rdSimulated:  result.simulated || false,
+            });
+            console.log(`[RD] Milestone ${milestoneId}: ${result.status} (score ${result.score}) [simulated: ${!!result.simulated}]`);
+          }
+        } catch (e) {
+          console.error('[RD] Background analysis failed:', e.message);
+          await Milestone.findByIdAndUpdate(milestoneId, { rdStatus: 'UNABLE_TO_EVALUATE' });
+        }
+      });
+    }
+
     // Transition: funded/in_progress → submitted → review in one call
     if (milestone.status === 'funded') await milestoneTransition(milestone._id, 'in_progress');
     await milestoneTransition(milestone._id, 'submitted');
     const updated = await milestoneTransition(milestone._id, 'review');
     res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// GET /api/milestones/:id/ai-check — returns RD deepfake detection result
+// If still PENDING and requestId stored, re-polls RD for a fresh status.
+router.get('/:id/ai-check', auth, async (req, res) => {
+  try {
+    const milestone = await Milestone.findById(req.params.id);
+    if (!milestone) return res.status(404).json({ message: 'Not found' });
+
+    // Both client and freelancer of the contract may view this
+    const isParty = [milestone.client.toString(), milestone.freelancer.toString()].includes(req.user.id);
+    if (!isParty) return res.status(403).json({ message: 'Access denied' });
+
+    // If analysis completed, return cached result immediately
+    if (milestone.rdStatus && milestone.rdStatus !== 'PENDING') {
+      return res.json({
+        rdStatus:     milestone.rdStatus,
+        rdScore:      milestone.rdScore,
+        rdRequestId:  milestone.rdRequestId,
+        rdAnalyzedAt: milestone.rdAnalyzedAt,
+        rdSimulated:  milestone.rdSimulated,
+      });
+    }
+
+    // If still PENDING and we have a real RD requestId (not local_*), try to poll RD
+    if (milestone.rdStatus === 'PENDING' && milestone.rdRequestId && !milestone.rdRequestId.startsWith('local_')) {
+      const axios = require('axios');
+      try {
+        const rdRes = await axios.get(
+          `https://api.prd.realitydefender.xyz/api/media/users/${milestone.rdRequestId}`,
+          { headers: { 'X-API-KEY': process.env.REALITY_DEFENDER_API_KEY, 'Content-Type': 'application/json' } }
+        );
+        const summary = rdRes.data?.resultsSummary;
+        if (summary && summary.status && summary.status !== 'IN_PROGRESS') {
+          await Milestone.findByIdAndUpdate(milestone._id, {
+            rdStatus:     summary.status,
+            rdScore:      summary.metadata?.finalScore ?? null,
+            rdAnalyzedAt: new Date(),
+          });
+          return res.json({
+            rdStatus:     summary.status,
+            rdScore:      summary.metadata?.finalScore ?? null,
+            rdRequestId:  milestone.rdRequestId,
+            rdAnalyzedAt: new Date(),
+          });
+        }
+      } catch (_) { /* RD not ready yet, fall through */ }
+    }
+
+    // Still processing
+    return res.json({ rdStatus: milestone.rdStatus || 'PENDING', rdScore: null, rdRequestId: milestone.rdRequestId, rdAnalyzedAt: null, rdSimulated: milestone.rdSimulated });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// POST /api/milestones/:id/ai-recheck — re-downloads the video and re-runs analysis
+router.post('/:id/ai-recheck', auth, async (req, res) => {
+  try {
+    const milestone = await Milestone.findById(req.params.id);
+    if (!milestone) return res.status(404).json({ message: 'Not found' });
+
+    const isParty = [milestone.client.toString(), milestone.freelancer.toString()].includes(req.user.id);
+    if (!isParty) return res.status(403).json({ message: 'Access denied' });
+
+    if (!milestone.submissionVideoUrl) {
+      return res.status(400).json({ message: 'No video uploaded for this milestone' });
+    }
+
+    // Mark as PENDING
+    await Milestone.findByIdAndUpdate(milestone._id, { rdStatus: 'PENDING', rdScore: null, rdAnalyzedAt: null });
+    res.json({ rdStatus: 'PENDING', message: 'Re-analysis started' });
+
+    // Fire-and-forget: download video and re-analyze
+    setImmediate(async () => {
+      try {
+        const axios = require('axios');
+        const videoUrl = milestone.submissionVideoUrl;
+        let videoBuffer;
+
+        if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+          const response = await axios.get(videoUrl, { responseType: 'arraybuffer', timeout: 60000 });
+          videoBuffer = Buffer.from(response.data);
+        } else {
+          const path = require('path');
+          const fs = require('fs');
+          const localPath = path.join(__dirname, '..', videoUrl);
+          videoBuffer = fs.readFileSync(localPath);
+        }
+
+        const result = await analyzeVideo(videoBuffer, 'recheck_video.mp4', 'video/mp4');
+        if (result) {
+          await Milestone.findByIdAndUpdate(milestone._id, {
+            rdRequestId:  result.requestId,
+            rdStatus:     result.status,
+            rdScore:      result.score,
+            rdAnalyzedAt: new Date(),
+            rdSimulated:  result.simulated || false,
+          });
+          console.log(`[RD] Recheck milestone ${milestone._id}: ${result.status} (score ${result.score})`);
+        }
+      } catch (e) {
+        console.error('[RD] Recheck failed:', e.message);
+        await Milestone.findByIdAndUpdate(milestone._id, { rdStatus: 'UNABLE_TO_EVALUATE' });
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -321,13 +461,29 @@ router.post('/:id/schedule-meeting', auth, async (req, res) => {
 
 // GET /api/milestones/file/:milestoneId/:type — protected file download
 // Client can only access after phase is approved; freelancer can always access their own uploads
-router.get('/file/:milestoneId/:type', auth, async (req, res) => {
+// Supports auth via Bearer header OR ?token= query param (for <a> download links)
+router.get('/file/:milestoneId/:type', async (req, res) => {
   try {
+    // Auth: accept both Bearer header and ?token= query param
+    let user = null;
+    const authHeader = req.headers.authorization;
+    const queryToken = req.query.token;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : queryToken;
+
+    if (!token) return res.status(401).json({ message: 'No token provided' });
+
+    try {
+      const jwt = require('jsonwebtoken');
+      user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
     const milestone = await Milestone.findById(req.params.milestoneId);
     if (!milestone) return res.status(404).json({ message: 'Not found' });
 
-    const isClient = milestone.client.toString() === req.user.id;
-    const isFreelancer = milestone.freelancer.toString() === req.user.id;
+    const isClient = milestone.client.toString() === user.id;
+    const isFreelancer = milestone.freelancer.toString() === user.id;
     if (!isClient && !isFreelancer) return res.status(403).json({ message: 'Forbidden' });
 
     if (isClient) {
@@ -338,10 +494,28 @@ router.get('/file/:milestoneId/:type', auth, async (req, res) => {
       if (!isVideo && !codeAllowed) return res.status(403).json({ message: 'Code file is locked until the phase is approved' });
     }
 
-    const fileUrl = req.params.type === 'video' ? milestone.submissionVideoUrl : milestone.submissionFileUrl;
-    if (!fileUrl) return res.status(404).json({ message: 'File not uploaded yet' });
+    const storedUrl = req.params.type === 'video' ? milestone.submissionVideoUrl : milestone.submissionFileUrl;
+    if (!storedUrl) return res.status(404).json({ message: 'File not uploaded yet' });
 
-    res.redirect(fileUrl);
+    // If it's a full URL (CDN / ImageKit), redirect to it
+    if (storedUrl.startsWith('http://') || storedUrl.startsWith('https://')) {
+      return res.redirect(storedUrl);
+    }
+
+    // Local file: serve from disk
+    const path = require('path');
+    const fs = require('fs');
+    const localPath = path.join(__dirname, '..', storedUrl); // storedUrl = /uploads/xxx
+    if (!fs.existsSync(localPath)) {
+      return res.status(404).json({ message: 'File not found on disk' });
+    }
+
+    // Extract original filename from the stored path (strip timestamp prefix)
+    const basename = path.basename(localPath);
+    const originalName = basename.replace(/^\d+-/, '') || basename;
+
+    res.setHeader('Content-Disposition', `attachment; filename="${originalName}"`);
+    return res.sendFile(path.resolve(localPath));
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

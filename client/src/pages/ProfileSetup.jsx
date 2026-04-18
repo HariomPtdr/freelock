@@ -222,11 +222,9 @@ function getChecklistItems(role, portfolio) {
     return [
       { label: 'Bio', done: !!portfolio?.bio, pct: 20 },
       { label: 'Skills', done: (portfolio?.skills?.length || 0) > 0, pct: 20 },
-      { label: 'GitHub URL', done: !!portfolio?.githubUrl, pct: 15 },
-      { label: 'Portfolio Sample', done: (portfolio?.projectSamples?.length || 0) > 0, pct: 10 },
-      { label: 'LinkedIn URL', done: !!portfolio?.linkedinUrl, pct: 5 },
+      { label: 'GitHub URL', done: !!portfolio?.githubUrl, pct: 25 },
+      { label: 'LinkedIn URL', done: !!portfolio?.linkedinUrl, pct: 10 },
       { label: 'Portfolio Website', done: !!portfolio?.portfolioUrl, pct: 5 },
-      { label: 'Resume', done: !!portfolio?.resumeUrl, pct: 5 },
     ]
   } else if (clientType === 'individual') {
     return [
@@ -458,51 +456,9 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
           </div>
         )}
 
-        {/* Portfolio Samples — freelancer */}
-        {isFreelancer && portfolio?.projectSamples?.length > 0 && (
-          <div className="dark-card p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#52525b' }}>Portfolio Samples</h3>
-              <span className="text-xs" style={{ color: '#52525b' }}>{portfolio.projectSamples.length} uploaded</span>
-            </div>
-            <div className="space-y-1.5">
-              {portfolio.projectSamples.map((s, i) => (
-                <div key={i} className="flex items-center gap-2.5 rounded-lg px-3 py-2"
-                  style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: '#52525b' }}>{SetupIcons.paperclip}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-white truncate">{s.title}</p>
-                    <p className="text-[10px] font-mono mt-0.5 truncate" style={{ color: '#52525b' }}>{s.fileHash?.slice(0, 24)}…</p>
-                  </div>
-                  {s.fileHash && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 whitespace-nowrap"
-                      style={{ background: 'rgba(139,92,246,0.1)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.2)' }}>
-                      SHA-256 ✓
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Resume — freelancer */}
-        {isFreelancer && portfolio?.resumeUrl && (
-          <div className="dark-card p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#52525b' }}>Resume</h3>
-            <a href={`${FILE_BASE}${portfolio.resumeUrl}`} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', background: '#1a1a1d', color: '#a1a1aa' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#f4f4f5' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#1a1a1d'; e.currentTarget.style.color = '#a1a1aa' }}>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              </svg>
-              Download Resume (PDF)
-            </a>
-          </div>
-        )}
+
+        
 
         {/* Payment — link to payment settings */}
         {!isFreelancer && (
@@ -665,8 +621,6 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
       else if (!isValidUrl(form.githubUrl)) e.githubUrl = 'Enter a valid URL'
       if (!form.portfolioUrl) e.portfolioUrl = 'Portfolio URL is required'
       else if (!isValidUrl(form.portfolioUrl)) e.portfolioUrl = 'Enter a valid URL'
-      if (!(localPortfolio?.projectSamples?.length > 0)) e.portfolioSample = 'Upload at least one portfolio sample'
-      if (!localPortfolio?.resumeUrl) e.resume = 'Resume is required'
     } else {
       if (!form.clientType) e.clientType = 'Please select your client type'
       if (!form.location) e.location = 'Location is required'
@@ -1043,102 +997,7 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
         )}
       </div>
 
-      {/* ── Portfolio samples & resume (freelancer only) ── */}
-      {isFreelancer && (
-        <div className="dark-card p-6 space-y-5">
-          <h3 className="text-base font-semibold text-white pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            Portfolio Samples & Resume
-          </h3>
 
-          {localPortfolio?.projectSamples?.length > 0 && (
-            <div>
-              <p className="text-sm font-medium mb-2" style={{ color: '#a1a1aa' }}>
-                Uploaded samples ({localPortfolio.projectSamples.length})
-              </p>
-              <div className="space-y-2">
-                {localPortfolio.projectSamples.map((s, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-lg px-4 py-2.5"
-                    style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: '#52525b' }}>{SetupIcons.paperclip}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{s.title}</p>
-                      <p className="text-xs font-mono truncate" style={{ color: '#52525b' }}>{s.fileHash?.slice(0, 24)}…</p>
-                    </div>
-                    <span className="text-xs px-2 py-0.5 rounded-md font-medium whitespace-nowrap"
-                      style={{ background: 'rgba(139,92,246,0.1)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.2)' }}>
-                      SHA-256 ✓
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <label className="text-sm font-medium" style={{ color: '#a1a1aa' }}>
-                Add Portfolio Sample <span className="text-red-500 ml-0.5">*</span>
-                {!(localPortfolio?.projectSamples?.length > 0) && (
-                  <span className="ml-1.5 text-xs font-normal" style={{ color: '#52525b' }}>+10%</span>
-                )}
-              </label>
-            </div>
-            <p className="text-xs mb-2" style={{ color: '#52525b' }}>Each file is SHA-256 hashed for proof of authenticity.</p>
-            <input value={sampleTitle} onChange={e => setSampleTitle(e.target.value)}
-              className="dark-input w-full mb-2"
-              placeholder="Sample title (e.g. E-Commerce App)" />
-            <label className={`block cursor-pointer border-2 border-dashed rounded-lg p-5 text-center transition-colors ${errors.portfolioSample ? 'border-red-500' : 'border-white/[0.08] hover:border-[#8B5CF6]'}`}
-              style={{ background: '#1a1a1d' }}>
-              <p className="text-sm font-medium" style={{ color: '#a1a1aa' }}>
-                {uploading ? 'Uploading & generating hash…' : 'Click to upload portfolio sample'}
-              </p>
-              <p className="text-xs mt-1" style={{ color: '#52525b' }}>Images, PDFs, zip files · Max 10 MB</p>
-              <input type="file" className="hidden" onChange={e => { setErrors(prev => ({ ...prev, portfolioSample: '' })); handleSampleUpload(e) }} disabled={uploading} />
-            </label>
-            {errors.portfolioSample && <p className="text-xs text-red-500 mt-1">{errors.portfolioSample}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <label className="text-sm font-medium" style={{ color: '#a1a1aa' }}>
-                Resume (PDF) <span className="text-red-500 ml-0.5">*</span>
-                {!localPortfolio?.resumeUrl && <span className="ml-1.5 text-xs font-normal" style={{ color: '#52525b' }}>+5%</span>}
-              </label>
-            </div>
-            {localPortfolio?.resumeUrl ? (
-              <div className="flex items-center gap-3 rounded-lg px-4 py-3"
-                style={{ background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: '#52525b' }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium flex-1 text-white">Resume uploaded</p>
-                <label className="cursor-pointer text-xs font-medium transition-colors" style={{ color: '#52525b' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#A78BFA'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#52525b'}>
-                  Replace
-                  <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} />
-                </label>
-              </div>
-            ) : (
-              <>
-                <label className={`block cursor-pointer border-2 border-dashed rounded-lg p-5 text-center transition-colors ${errors.resume ? 'border-red-500' : 'border-white/[0.08] hover:border-[#8B5CF6]'}`}
-                  style={{ background: '#1a1a1d' }}>
-                  <p className="text-sm font-medium" style={{ color: '#a1a1aa' }}>
-                    {resumeUploading ? 'Uploading…' : 'Click to upload resume PDF'}
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: '#52525b' }}>PDF only · Max 10 MB</p>
-                  <input type="file" accept=".pdf" className="hidden" onChange={e => { setErrors(prev => ({ ...prev, resume: '' })); handleResumeUpload(e) }} disabled={resumeUploading} />
-                </label>
-                {errors.resume && <p className="text-xs text-red-500 mt-1">{errors.resume}</p>}
-              </>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ── Save / Cancel ── always at the very bottom ── */}
       <div className="dark-card p-4 flex gap-3">

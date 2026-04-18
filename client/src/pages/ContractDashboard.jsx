@@ -3,6 +3,22 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
 import toast from 'react-hot-toast'
+import AiDetectionBadge from '../components/AiDetectionBadge'
+
+/** Build a full URL for a file stored either locally (/uploads/...) or on a CDN (https://...). */
+const fileUrl = (path) => {
+  if (!path) return null
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  return `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${path}`
+}
+
+/** Build an authenticated download URL by appending the auth token as a query param.
+ *  Used for the protected /api/milestones/file/:id/:type endpoint. */
+const authFileUrl = (milestoneId, type) => {
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:5001'
+  const token = localStorage.getItem('token')
+  return `${base}/api/milestones/file/${milestoneId}/${type}?token=${encodeURIComponent(token)}`
+}
 
 const CONFETTI_COLORS = ['#8B5CF6', '#A78BFA', '#FF9500', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4']
 
@@ -442,8 +458,8 @@ export default function ContractDashboard() {
                       <span className="text-xs" style={{ color: '#a1a1aa' }}>Code Hash: <a href={`/verify/${m.submissionFileHash}`} target="_blank" rel="noreferrer"
                         className="hover:underline underline-offset-2 font-mono" style={{ color: '#A78BFA' }}>{m.submissionFileHash.substring(0, 16)}...</a></span>
                       {(user.role === 'freelancer' || ['approved', 'released'].includes(m.status)) && (
-                        <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/milestones/file/${m._id}/code`}
-                          target="_blank" rel="noreferrer"
+                        <a href={authFileUrl(m._id, 'code')}
+                          target="_blank" rel="noreferrer" download
                           className="text-xs hover:underline font-medium flex-shrink-0" style={{ color: '#A78BFA' }}>Download File</a>
                       )}
                       {user.role === 'client' && !['approved', 'released'].includes(m.status) && (
@@ -451,7 +467,7 @@ export default function ContractDashboard() {
                       )}
                     </div>
                   )}
-                  {m.submissionVideoHash && m.submissionVideoUrl && (
+                  {m.submissionVideoHash && (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xs" style={{ color: '#a1a1aa' }}>
@@ -461,12 +477,32 @@ export default function ContractDashboard() {
                           className="text-xs hover:underline flex-shrink-0" style={{ color: '#52525b' }}>Verify</a>
                       </div>
                       {(user.role === 'freelancer' || ['review', 'approved', 'released', 'inaccurate_1', 'disputed'].includes(m.status)) && (
-                        <video
-                          src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${m.submissionVideoUrl}`}
-                          controls
-                          className="w-full rounded-lg max-h-64 bg-black"
-                          style={{ border: '1px solid rgba(255,255,255,0.06)' }}
-                        />
+                        <>
+                          {/* Use direct URL if available, otherwise fall back to protected endpoint */}
+                          {(m.submissionVideoUrl || m.submissionVideoHash) && (
+                            <video
+                              src={m.submissionVideoUrl ? fileUrl(m.submissionVideoUrl) : authFileUrl(m._id, 'video')}
+                              controls
+                              className="w-full rounded-lg max-h-64 bg-black"
+                              style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+                              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'block') }}
+                            />
+                          )}
+                          {/* Shown if video fails to load */}
+                          {!m.submissionVideoUrl && m.submissionVideoHash && (
+                            <div className="rounded-lg p-3 text-center text-xs" style={{ display: 'none', background: '#1a1a1d', border: '1px solid rgba(255,255,255,0.06)', color: '#52525b' }}>
+                              Video file not available — freelancer may need to re-submit deliverables.
+                            </div>
+                          )}
+                          {/* AI Deepfake Detection Badge */}
+                          <AiDetectionBadge
+                            milestoneId={m._id}
+                            initialStatus={m.rdStatus}
+                            initialScore={m.rdScore}
+                            initialAnalyzedAt={m.rdAnalyzedAt}
+                            initialSimulated={m.rdSimulated}
+                          />
+                        </>
                       )}
                     </div>
                   )}
@@ -556,7 +592,7 @@ export default function ContractDashboard() {
                               </div>
                               <p style={{ color: '#fca5a5' }}>{e.description}</p>
                               {e.fileUrl && (
-                                <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${e.fileUrl}`}
+                                <a href={fileUrl(e.fileUrl)}
                                   target="_blank" rel="noopener noreferrer"
                                   className="underline underline-offset-1 mt-0.5 inline-block" style={{ color: '#60a5fa' }}>
                                   View attachment
