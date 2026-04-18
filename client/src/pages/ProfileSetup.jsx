@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../api'
+import ProfileCoverCanvas from '../components/ProfileCoverCanvas'
 import Navbar from '../components/Navbar'
 import SkillSelector from '../components/SkillSelector'
 import toast from 'react-hot-toast'
@@ -282,22 +283,14 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
 
         {/* Cover + Header card */}
         <div className="dark-card">
-          <div className="h-28" style={{
-            background: 'linear-gradient(135deg, #1a0800 0%, #2d1200 40%, #3d1a00 70%, #1a0800 100%)',
+          <div style={{
+            height: '128px',
             position: 'relative',
             overflow: 'hidden',
             borderRadius: '16px 16px 0 0',
+            background: 'linear-gradient(135deg, #0f0400 0%, #1a0800 50%, #120600 100%)',
           }}>
-            <div style={{
-              position: 'absolute', top: '-20px', right: '10%',
-              width: '160px', height: '160px', borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(255,104,3,0.18) 0%, transparent 70%)',
-            }} />
-            <div style={{
-              position: 'absolute', bottom: '-30px', left: '20%',
-              width: '120px', height: '120px', borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(174,58,2,0.14) 0%, transparent 70%)',
-            }} />
+            <ProfileCoverCanvas />
           </div>
           <div className="px-5 pb-5" style={{ position: 'relative', zIndex: 1 }}>
             <div className="flex items-start justify-between -mt-8 mb-2">
