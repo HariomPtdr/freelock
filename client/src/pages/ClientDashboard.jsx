@@ -54,16 +54,23 @@ export default function ClientDashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    Promise.all([
-      api.get('/api/contracts/my-contracts'),
-      api.get('/api/jobs/my-jobs'),
-      api.get('/api/auth/me')
-    ]).then(([c, j, me]) => {
-      setContracts(c.data)
-      setJobs(j.data)
-      setPortfolio(me.data.portfolio)
-    }).catch(() => toast.error('Failed to load data'))
-      .finally(() => setLoading(false))
+    let done = 0
+    const finish = () => { if (++done === 3) setLoading(false) }
+
+    api.get('/api/contracts/my-contracts')
+      .then(r => setContracts(Array.isArray(r.data) ? r.data : []))
+      .catch(() => toast.error('Failed to load contracts'))
+      .finally(finish)
+
+    api.get('/api/jobs/my-jobs')
+      .then(r => setJobs(Array.isArray(r.data) ? r.data : []))
+      .catch(() => toast.error('Failed to load jobs'))
+      .finally(finish)
+
+    api.get('/api/auth/me')
+      .then(r => setPortfolio(r.data.portfolio ?? null))
+      .catch(() => {})
+      .finally(finish)
   }, [])
 
   const allBids = jobs.flatMap(j => (j.bids || []).map(b => ({ ...b, job: j })))
@@ -71,7 +78,6 @@ export default function ClientDashboard() {
   const activeContracts = contracts.filter(c => ['active', 'pending_advance'].includes(c.status))
   const totalValue = contracts.reduce((sum, c) => sum + (c.amount || 0), 0)
   const openJobs = jobs.filter(j => j.status === 'open')
-  const toReview = allBids.filter(b => b.status === 'applied').length
 
   const handleAdvancePayment = async (advanceMilestone, contractId) => {
     try {
@@ -135,8 +141,8 @@ export default function ClientDashboard() {
       <div className="flex items-center justify-center h-64 flex-col gap-4">
         <div className="w-48 h-4 shimmer-skeleton" />
         <div className="w-32 h-3 shimmer-skeleton" />
-        <div className="grid grid-cols-5 gap-3 mt-4 w-full max-w-2xl px-6">
-          {[...Array(5)].map((_, i) => (
+        <div className="grid grid-cols-4 gap-3 mt-4 w-full max-w-2xl px-6">
+          {[...Array(4)].map((_, i) => (
             <div key={i} className="h-20 shimmer-skeleton rounded-xl" />
           ))}
         </div>
@@ -208,12 +214,11 @@ export default function ClientDashboard() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-4 gap-3 mb-6">
           <StatCard label="Active Contracts" value={activeContracts.length} accent />
-          <StatCard label="Total Value" value={totalValue} />
+          <StatCard label="Total Value" value={`₹${totalValue.toLocaleString('en-IN')}`} />
           <StatCard label="Open Jobs" value={openJobs.length} />
           <StatCard label="Shortlisted" value={awaitingDecision.length} />
-          <StatCard label="To Review" value={toReview} />
         </div>
 
         {/* Awaiting Decision */}

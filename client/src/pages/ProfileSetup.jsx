@@ -176,14 +176,14 @@ function BadgesCard({ user, portfolio }) {
         <div className="flex flex-col gap-1.5">
           {locked.map(badge => (
             <div key={badge.id} className="flex items-start gap-2 rounded-lg px-2.5 py-2 opacity-40"
-              style={{ border: '1px solid rgba(255,104,3,0.06)', background: '#120a02' }}>
+              style={{ border: '1px solid rgba(255,104,3,0.10)', background: '#120a02' }}>
               <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{ background: 'rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                style={{ background: 'rgba(255,104,3,0.08)', color: '#6b5445' }}>
                 {badge.icon}
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold leading-tight truncate" style={{ color: '#6b5445' }}>{badge.title}</p>
-                <p className="text-[10px] mt-0.5 leading-tight line-clamp-2" style={{ color: '#3f3f46' }}>{badge.description}</p>
+                <p className="text-[10px] mt-0.5 leading-tight line-clamp-2" style={{ color: '#6b5445' }}>{badge.description}</p>
               </div>
             </div>
           ))}
@@ -199,17 +199,19 @@ function BadgesCard({ user, portfolio }) {
 function Avatar({ url, name, size = 14, shape = 'circle', className = '' }) {
   const sizeClass = `w-${size} h-${size}`
   const shapeClass = shape === 'circle' ? 'rounded-full' : 'rounded-xl'
-  const borderClass = className ? '' : 'border border-white/[0.08]'
+  const borderClass = className ? '' : 'border'
+  const borderStyle = className ? {} : { borderColor: 'rgba(255,104,3,0.20)' }
   const fullUrl = url ? (url.startsWith('http') ? url : `${FILE_BASE}${url}`) : null
   if (fullUrl) {
     return (
       <img src={fullUrl} alt={name}
-        className={`${sizeClass} ${shapeClass} object-cover ${borderClass} ${className}`} />
+        className={`${sizeClass} ${shapeClass} object-cover ${borderClass} ${className}`}
+        style={borderStyle} />
     )
   }
   return (
     <div className={`${sizeClass} ${shapeClass} flex items-center justify-center text-white font-bold flex-shrink-0 ${borderClass} ${className}`}
-      style={{ background: 'linear-gradient(135deg, #FF6803, #AE3A02)', fontSize: size > 10 ? '1.25rem' : '0.875rem' }}>
+      style={{ background: 'linear-gradient(135deg, #FF6803, #AE3A02)', fontSize: size > 10 ? '1.25rem' : '0.875rem', ...borderStyle }}>
       {name?.[0]?.toUpperCase()}
     </div>
   )
@@ -222,11 +224,9 @@ function getChecklistItems(role, portfolio) {
     return [
       { label: 'Bio', done: !!portfolio?.bio, pct: 20 },
       { label: 'Skills', done: (portfolio?.skills?.length || 0) > 0, pct: 20 },
-      { label: 'GitHub URL', done: !!portfolio?.githubUrl, pct: 15 },
-      { label: 'Portfolio Sample', done: (portfolio?.projectSamples?.length || 0) > 0, pct: 10 },
-      { label: 'LinkedIn URL', done: !!portfolio?.linkedinUrl, pct: 5 },
+      { label: 'GitHub URL', done: !!portfolio?.githubUrl, pct: 25 },
+      { label: 'LinkedIn URL', done: !!portfolio?.linkedinUrl, pct: 10 },
       { label: 'Portfolio Website', done: !!portfolio?.portfolioUrl, pct: 5 },
-      { label: 'Resume', done: !!portfolio?.resumeUrl, pct: 5 },
     ]
   } else if (clientType === 'individual') {
     return [
@@ -282,11 +282,26 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
 
         {/* Cover + Header card */}
         <div className="dark-card overflow-hidden">
-          <div className="h-28" style={{ background: 'linear-gradient(135deg, #120a02 0%, #120a02 50%, #1c1008 100%)' }} />
+          <div className="h-28" style={{
+            background: 'linear-gradient(135deg, #1a0800 0%, #2d1200 40%, #3d1a00 70%, #1a0800 100%)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              position: 'absolute', top: '-20px', right: '10%',
+              width: '160px', height: '160px', borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255,104,3,0.18) 0%, transparent 70%)',
+            }} />
+            <div style={{
+              position: 'absolute', bottom: '-30px', left: '20%',
+              width: '120px', height: '120px', borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(174,58,2,0.14) 0%, transparent 70%)',
+            }} />
+          </div>
           <div className="px-5 pb-5">
             <div className="flex items-start justify-between -mt-8 mb-2">
               <Avatar url={portfolio?.avatarUrl} name={user?.name} size={16} shape={avatarShape}
-                className="border-4 shadow" style={{ borderColor: '#111113' }} />
+                className="border-4 shadow" style={{ borderColor: '#120a02', boxShadow: '0 0 0 2px rgba(255,104,3,0.25)' }} />
               <div className="flex gap-2 mt-9">
                 <button onClick={onEdit}
                   className="btn-purple text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
@@ -297,8 +312,8 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
                 </button>
                 <Link to={publicProfilePath}
                   className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-                  style={{ border: '1px solid rgba(255,104,3,0.10)', background: '#120a02', color: '#BFBFBF' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#f4f4f5'; e.currentTarget.style.background = 'rgba(255,104,3,0.06)' }}
+                  style={{ border: '1px solid rgba(255,104,3,0.15)', background: '#120a02', color: '#BFBFBF' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#F5EDE4'; e.currentTarget.style.background = 'rgba(255,104,3,0.08)' }}
                   onMouseLeave={e => { e.currentTarget.style.color = '#BFBFBF'; e.currentTarget.style.background = '#120a02' }}>
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -308,7 +323,7 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
               </div>
             </div>
 
-            <h2 className="text-base font-bold text-white leading-tight mt-1">{user?.name}</h2>
+            <h2 className="text-base font-bold leading-tight mt-1" style={{ color: '#F5EDE4' }}>{user?.name}</h2>
             {isBusiness && portfolio?.companyName && (
               <p className="text-sm mt-0.5" style={{ color: '#BFBFBF' }}>{portfolio.companyName}</p>
             )}
@@ -318,14 +333,14 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
               {isFreelancer ? (
                 <>
                   {fullUser?.rating > 0 && (
-                    <span className="font-semibold text-sm" style={{ color: '#FF6803' }}>★ {fullUser.rating.toFixed(1)}</span>
+                    <span className="font-semibold text-sm" style={{ color: '#f59e0b' }}>★ {fullUser.rating.toFixed(1)}</span>
                   )}
                   {fullUser?.totalJobsCompleted > 0 && (
                     <span className="text-xs" style={{ color: '#6b5445' }}>{fullUser.totalJobsCompleted} jobs</span>
                   )}
                   {portfolio?.availability && (
                     <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                      style={{ background: 'rgba(255,104,3,0.10)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.14)' }}>
+                      style={{ background: 'rgba(255,104,3,0.10)', color: '#FF6803', border: '1px solid rgba(255,104,3,0.20)' }}>
                       {portfolio.availability}
                     </span>
                   )}
@@ -334,13 +349,13 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
                 <>
                   {portfolio?.clientType && (
                     <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                      style={{ background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.10)' }}>
+                      style={{ background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.12)' }}>
                       {isIndividual ? 'Individual' : 'Business'}
                     </span>
                   )}
                   {isBusiness && portfolio?.industry && (
                     <span className="text-xs px-2 py-0.5 rounded-md font-medium"
-                      style={{ background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.06)' }}>
+                      style={{ background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.10)' }}>
                       {portfolio.industry}
                     </span>
                   )}
@@ -360,7 +375,7 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
             {/* Bio */}
             {portfolio?.bio
               ? <p className="mt-2 text-sm leading-relaxed" style={{ color: '#BFBFBF' }}>{portfolio.bio}</p>
-              : <p className="mt-2 text-xs italic" style={{ color: '#6b5445' }}>No bio yet. <button onClick={onEdit} className="underline underline-offset-2 transition-colors" style={{ color: '#BFBFBF' }}>Add one →</button></p>
+              : <p className="mt-2 text-xs italic" style={{ color: '#6b5445' }}>No bio yet. <button onClick={onEdit} className="underline underline-offset-2 transition-colors" style={{ color: '#FF6803' }}>Add one →</button></p>
             }
           </div>
         </div>
@@ -375,8 +390,8 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
                 { value: `${fullUser.onTimeDeliveryRate?.toFixed(0) || 0}%`, label: 'On-time' },
                 { value: `${fullUser.disputeRate?.toFixed(0) || 0}%`, label: 'Disputes' },
               ].map((stat, idx) => (
-                <div key={stat.label} className="py-3 px-2 text-center" style={idx > 0 ? { borderLeft: '1px solid rgba(255,104,3,0.06)' } : {}}>
-                  <div className="text-xl font-bold text-white">{stat.value}</div>
+                <div key={stat.label} className="py-3 px-2 text-center" style={idx > 0 ? { borderLeft: '1px solid rgba(255,104,3,0.10)' } : {}}>
+                  <div className="text-xl font-bold" style={{ color: '#F5EDE4' }}>{stat.value}</div>
                   <div className="text-xs mt-0.5" style={{ color: '#6b5445' }}>{stat.label}</div>
                 </div>
               ))}
@@ -392,12 +407,12 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
               ? <div className="flex flex-wrap gap-1.5">
                   {portfolio.skills.map(skill => (
                     <span key={skill} className="text-xs font-medium px-2.5 py-1 rounded-md"
-                      style={{ background: 'rgba(255,104,3,0.10)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.14)' }}>{skill}</span>
+                      style={{ background: 'rgba(255,104,3,0.10)', color: '#FF6803', border: '1px solid rgba(255,104,3,0.20)' }}>{skill}</span>
                   ))}
                 </div>
               : <button onClick={onEdit} className="text-xs italic transition-colors" style={{ color: '#6b5445' }}
                   onMouseEnter={e => e.currentTarget.style.color = '#BFBFBF'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>No skills added yet. Add some →</button>
+                  onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>No skills added yet. Add some →</button>
             }
           </div>
         )}
@@ -411,96 +426,50 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
               {portfolio?.githubUrl && (
                 <DetailRowCard icon={SetupIcons.github} label="GitHub">
                   <a href={portfolio.githubUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#BFBFBF' }}>{portfolio.githubUrl}</a>
+                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#FF6803' }}>{portfolio.githubUrl}</a>
                 </DetailRowCard>
               )}
               {portfolio?.linkedinUrl && (
                 <DetailRowCard icon={SetupIcons.linkedin} label="LinkedIn">
                   <a href={portfolio.linkedinUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#BFBFBF' }}>{portfolio.linkedinUrl}</a>
+                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#FF6803' }}>{portfolio.linkedinUrl}</a>
                 </DetailRowCard>
               )}
               {portfolio?.portfolioUrl && (
                 <DetailRowCard icon={SetupIcons.globe} label="Portfolio">
                   <a href={portfolio.portfolioUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#BFBFBF' }}>{portfolio.portfolioUrl}</a>
+                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#FF6803' }}>{portfolio.portfolioUrl}</a>
                 </DetailRowCard>
               )}
               {portfolio?.location && (
                 <DetailRowCard icon={SetupIcons.location} label="Location">
-                  <span className="text-xs font-medium text-white">{portfolio.location}</span>
+                  <span className="text-xs font-medium" style={{ color: '#F5EDE4' }}>{portfolio.location}</span>
                 </DetailRowCard>
               )}
               {portfolio?.yearsHiring && (
                 <DetailRowCard icon={SetupIcons.clock} label="Hiring Experience">
-                  <span className="text-xs font-medium text-white">
+                  <span className="text-xs font-medium" style={{ color: '#F5EDE4' }}>
                     {YEARS_HIRING_OPTIONS.find(o => o.value === portfolio.yearsHiring)?.label || portfolio.yearsHiring}
                   </span>
                 </DetailRowCard>
               )}
               {portfolio?.preferredComm && (
                 <DetailRowCard icon={SetupIcons.chat} label="Communication">
-                  <span className="text-xs font-medium capitalize text-white">{portfolio.preferredComm}</span>
+                  <span className="text-xs font-medium capitalize" style={{ color: '#F5EDE4' }}>{portfolio.preferredComm}</span>
                 </DetailRowCard>
               )}
               {isBusiness && portfolio?.companySize && (
                 <DetailRowCard icon={SetupIcons.users} label="Company Size">
-                  <span className="text-xs font-medium text-white">{portfolio.companySize} people</span>
+                  <span className="text-xs font-medium" style={{ color: '#F5EDE4' }}>{portfolio.companySize} people</span>
                 </DetailRowCard>
               )}
               {isBusiness && portfolio?.websiteUrl && (
                 <DetailRowCard icon={SetupIcons.globe} label="Website">
                   <a href={portfolio.websiteUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#BFBFBF' }}>{portfolio.websiteUrl}</a>
+                    className="text-xs hover:underline underline-offset-2 font-medium truncate block transition-colors" style={{ color: '#FF6803' }}>{portfolio.websiteUrl}</a>
                 </DetailRowCard>
               )}
             </div>
-          </div>
-        )}
-
-        {/* Portfolio Samples — freelancer */}
-        {isFreelancer && portfolio?.projectSamples?.length > 0 && (
-          <div className="dark-card p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6b5445' }}>Portfolio Samples</h3>
-              <span className="text-xs" style={{ color: '#6b5445' }}>{portfolio.projectSamples.length} uploaded</span>
-            </div>
-            <div className="space-y-1.5">
-              {portfolio.projectSamples.map((s, i) => (
-                <div key={i} className="flex items-center gap-2.5 rounded-lg px-3 py-2"
-                  style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)' }}>
-                  <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'rgba(255,104,3,0.06)', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>{SetupIcons.paperclip}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-white truncate">{s.title}</p>
-                    <p className="text-[10px] font-mono mt-0.5 truncate" style={{ color: '#6b5445' }}>{s.fileHash?.slice(0, 24)}…</p>
-                  </div>
-                  {s.fileHash && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 whitespace-nowrap"
-                      style={{ background: 'rgba(255,104,3,0.10)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.14)' }}>
-                      SHA-256 ✓
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Resume — freelancer */}
-        {isFreelancer && portfolio?.resumeUrl && (
-          <div className="dark-card p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#6b5445' }}>Resume</h3>
-            <a href={`${FILE_BASE}${portfolio.resumeUrl}`} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
-              style={{ border: '1px solid rgba(255,104,3,0.10)', background: '#120a02', color: '#BFBFBF' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,104,3,0.06)'; e.currentTarget.style.color = '#f4f4f5' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#120a02'; e.currentTarget.style.color = '#BFBFBF' }}>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              </svg>
-              Download Resume (PDF)
-            </a>
           </div>
         )}
 
@@ -509,20 +478,20 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
           <div className="rounded-xl p-4 flex items-center gap-3" style={
             isVerified
               ? { background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)' }
-              : { background: '#111113', border: '1px solid rgba(255,104,3,0.10)' }
+              : { background: '#120a02', border: '1px solid rgba(255,104,3,0.12)' }
           }>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={
               isVerified
                 ? { background: 'linear-gradient(135deg, #FF6803, #AE3A02)' }
-                : { background: '#120a02' }
+                : { background: 'rgba(255,104,3,0.08)' }
             }>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                style={{ color: isVerified ? '#fff' : '#1c1008' }}>
+                style={{ color: isVerified ? '#fff' : '#6b5445' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white">{isVerified ? 'Payment Verified' : 'Payment Not Verified'}</p>
+              <p className="text-sm font-semibold" style={{ color: '#F5EDE4' }}>{isVerified ? 'Payment Verified' : 'Payment Not Verified'}</p>
               <p className="text-xs mt-0.5" style={{ color: '#BFBFBF' }}>{isVerified ? 'Your payment method is confirmed' : 'Verify your payment to build trust with freelancers'}</p>
             </div>
           </div>
@@ -535,11 +504,11 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
         {/* Profile Strength */}
         <div className="dark-card p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-white">Profile Strength</h3>
-            <span className="text-sm font-bold" style={{ color: '#BFBFBF' }}>{completion}%</span>
+            <h3 className="text-sm font-semibold" style={{ color: '#F5EDE4' }}>Profile Strength</h3>
+            <span className="text-sm font-bold" style={{ color: '#FF6803' }}>{completion}%</span>
           </div>
-          <div className="w-full rounded-full h-1.5 overflow-hidden mb-3" style={{ background: '#120a02' }}>
-            <div className="h-1.5 rounded-full transition-all duration-700" style={{ width: `${completion}%`, background: '#FF6803' }} />
+          <div className="w-full rounded-full h-1.5 overflow-hidden mb-3" style={{ background: 'rgba(255,104,3,0.10)' }}>
+            <div className="h-1.5 rounded-full transition-all duration-700" style={{ width: `${completion}%`, background: 'linear-gradient(90deg, #FF6803, #AE3A02)' }} />
           </div>
 
           {completion === 100 ? (
@@ -558,16 +527,16 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
                 <div key={item.label} className="flex items-center gap-2">
                   {item.done ? (
                     <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'rgba(255,104,3,0.12)', border: '1px solid rgba(255,104,3,0.25)' }}>
-                      <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#BFBFBF' }}>
+                      style={{ background: 'rgba(255,104,3,0.15)', border: '1px solid rgba(255,104,3,0.30)' }}>
+                      <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                   ) : (
-                    <div className="w-3.5 h-3.5 rounded-full border-2 flex-shrink-0" style={{ borderColor: '#3f3f46' }} />
+                    <div className="w-3.5 h-3.5 rounded-full border-2 flex-shrink-0" style={{ borderColor: 'rgba(255,104,3,0.20)' }} />
                   )}
                   <span className={`text-xs flex-1 leading-tight ${item.done ? 'line-through' : ''}`}
-                    style={{ color: item.done ? '#1c1008' : '#BFBFBF' }}>
+                    style={{ color: item.done ? '#6b5445' : '#BFBFBF' }}>
                     {item.label}
                   </span>
                   {!item.done && item.pct > 0 && (
@@ -583,7 +552,7 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
           )}
 
           <div className="flex items-center justify-between mt-3 pt-2.5 text-[10px]"
-            style={{ borderTop: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
+            style={{ borderTop: '1px solid rgba(255,104,3,0.10)', color: '#6b5445' }}>
             <span>{doneCount} / {checklist.length} complete</span>
             <span>{completion < 100 ? `${100 - completion}% remaining` : 'All done!'}</span>
           </div>
@@ -611,7 +580,7 @@ function DetailRow({ icon, label, children }) {
 function DetailRowCard({ icon, label, children }) {
   return (
     <div className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-      style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)' }}>
+      style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.10)' }}>
       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white flex-shrink-0"
         style={{ background: 'linear-gradient(135deg, #FF6803, #AE3A02)' }}>
         {icon}
@@ -665,8 +634,6 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
       else if (!isValidUrl(form.githubUrl)) e.githubUrl = 'Enter a valid URL'
       if (!form.portfolioUrl) e.portfolioUrl = 'Portfolio URL is required'
       else if (!isValidUrl(form.portfolioUrl)) e.portfolioUrl = 'Enter a valid URL'
-      if (!(localPortfolio?.projectSamples?.length > 0)) e.portfolioSample = 'Upload at least one portfolio sample'
-      if (!localPortfolio?.resumeUrl) e.resume = 'Resume is required'
     } else {
       if (!form.clientType) e.clientType = 'Please select your client type'
       if (!form.location) e.location = 'Location is required'
@@ -711,13 +678,11 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
     const file = e.target.files[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file (JPG, PNG, GIF, etc.)')
       return
     }
 
-    // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
       toast.error('File size must be less than 10MB')
       return
@@ -791,8 +756,8 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
   return (
     <div className="space-y-4">
       <div className="dark-card p-6 space-y-5">
-        <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid rgba(255,104,3,0.06)' }}>
-          <h3 className="text-base font-semibold text-white">
+        <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid rgba(255,104,3,0.10)' }}>
+          <h3 className="text-base font-semibold" style={{ color: '#F5EDE4' }}>
             {isFreelancer ? 'Freelancer Profile' : 'Client Profile'}
           </h3>
           <span className="text-xs" style={{ color: '#6b5445' }}>Fields marked <span className="text-red-500">*</span> are required</span>
@@ -816,18 +781,20 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
                     onClick={() => { setForm({ ...form, clientType: opt.value }); setErrors({ ...errors, clientType: '' }) }}
                     className="text-left rounded-xl px-4 py-3 transition-all flex items-center gap-4"
                     style={selected
-                      ? { border: '1px solid rgba(174,58,2,0.40)', background: 'rgba(255,104,3,0.08)' }
-                      : { border: '1px solid rgba(255,104,3,0.10)', background: '#120a02' }}>
+                      ? { border: '1px solid rgba(255,104,3,0.35)', background: 'rgba(255,104,3,0.08)' }
+                      : { border: '1px solid rgba(255,104,3,0.12)', background: '#120a02' }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
-                      style={selected ? { background: 'linear-gradient(135deg, #FF6803, #AE3A02)', color: '#fff' } : { background: 'rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                      style={selected
+                        ? { background: 'linear-gradient(135deg, #FF6803, #AE3A02)', color: '#fff' }
+                        : { background: 'rgba(255,104,3,0.06)', color: '#6b5445' }}>
                       {opt.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold" style={{ color: selected ? '#f4f4f5' : '#BFBFBF' }}>{opt.title}</p>
+                      <p className="text-sm font-semibold" style={{ color: selected ? '#F5EDE4' : '#BFBFBF' }}>{opt.title}</p>
                       <p className="text-xs mt-0.5 leading-tight" style={{ color: '#6b5445' }}>{opt.sub}</p>
                     </div>
                     {selected && (
-                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#BFBFBF' }}>
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                     )}
@@ -855,9 +822,9 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
                     src={localPortfolio.avatarUrl.startsWith('http') ? localPortfolio.avatarUrl : `${FILE_BASE}${localPortfolio.avatarUrl}`}
                     alt="avatar"
                     className={`w-16 h-16 object-cover ${avatarShape}`}
-                    style={{ border: '1px solid rgba(255,104,3,0.10)' }} />
+                    style={{ border: '1px solid rgba(255,104,3,0.15)' }} />
                 : <div className={`w-16 h-16 flex items-center justify-center ${avatarShape}`}
-                    style={{ background: '#120a02', border: '2px dashed rgba(255,255,255,0.1)' }}>
+                    style={{ background: '#120a02', border: '2px dashed rgba(255,104,3,0.20)' }}>
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#6b5445' }}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -865,8 +832,8 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
               }
               <div>
                 <label className="cursor-pointer inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-                  style={{ border: '1px solid rgba(255,104,3,0.10)', background: '#120a02', color: '#BFBFBF' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,104,3,0.06)'; e.currentTarget.style.color = '#f4f4f5' }}
+                  style={{ border: '1px solid rgba(255,104,3,0.15)', background: '#120a02', color: '#BFBFBF' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,104,3,0.08)'; e.currentTarget.style.color = '#F5EDE4' }}
                   onMouseLeave={e => { e.currentTarget.style.background = '#120a02'; e.currentTarget.style.color = '#BFBFBF' }}>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -974,18 +941,20 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
                       onClick={() => setForm({ ...form, yearsHiring: opt.value })}
                       className="text-left rounded-xl px-4 py-3 transition-all flex items-center gap-4"
                       style={selected
-                        ? { border: '1px solid rgba(174,58,2,0.40)', background: 'rgba(255,104,3,0.08)' }
-                        : { border: '1px solid rgba(255,104,3,0.10)', background: '#120a02' }}>
+                        ? { border: '1px solid rgba(255,104,3,0.35)', background: 'rgba(255,104,3,0.08)' }
+                        : { border: '1px solid rgba(255,104,3,0.12)', background: '#120a02' }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
-                        style={selected ? { background: 'linear-gradient(135deg, #FF6803, #AE3A02)', color: '#fff' } : { background: 'rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                        style={selected
+                          ? { background: 'linear-gradient(135deg, #FF6803, #AE3A02)', color: '#fff' }
+                          : { background: 'rgba(255,104,3,0.06)', color: '#6b5445' }}>
                         {SetupIcons.clock}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold" style={{ color: selected ? '#f4f4f5' : '#BFBFBF' }}>{opt.label}</p>
+                        <p className="text-sm font-semibold" style={{ color: selected ? '#F5EDE4' : '#BFBFBF' }}>{opt.label}</p>
                         <p className="text-xs mt-0.5 leading-tight" style={{ color: '#6b5445' }}>{opt.sub}</p>
                       </div>
                       {selected && (
-                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#BFBFBF' }}>
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -1005,18 +974,20 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
                       onClick={() => setForm({ ...form, preferredComm: opt.value })}
                       className="text-left rounded-xl px-4 py-3 transition-all flex items-center gap-4"
                       style={selected
-                        ? { border: '1px solid rgba(174,58,2,0.40)', background: 'rgba(255,104,3,0.08)' }
-                        : { border: '1px solid rgba(255,104,3,0.10)', background: '#120a02' }}>
+                        ? { border: '1px solid rgba(255,104,3,0.35)', background: 'rgba(255,104,3,0.08)' }
+                        : { border: '1px solid rgba(255,104,3,0.12)', background: '#120a02' }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
-                        style={selected ? { background: 'linear-gradient(135deg, #FF6803, #AE3A02)', color: '#fff' } : { background: 'rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                        style={selected
+                          ? { background: 'linear-gradient(135deg, #FF6803, #AE3A02)', color: '#fff' }
+                          : { background: 'rgba(255,104,3,0.06)', color: '#6b5445' }}>
                         {commIcons[opt.value]}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold" style={{ color: selected ? '#f4f4f5' : '#BFBFBF' }}>{opt.label}</p>
+                        <p className="text-sm font-semibold" style={{ color: selected ? '#F5EDE4' : '#BFBFBF' }}>{opt.label}</p>
                         <p className="text-xs mt-0.5 leading-tight" style={{ color: '#6b5445' }}>{opt.sub}</p>
                       </div>
                       {selected && (
-                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#BFBFBF' }}>
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
@@ -1043,103 +1014,6 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
         )}
       </div>
 
-      {/* ── Portfolio samples & resume (freelancer only) ── */}
-      {isFreelancer && (
-        <div className="dark-card p-6 space-y-5">
-          <h3 className="text-base font-semibold text-white pb-4" style={{ borderBottom: '1px solid rgba(255,104,3,0.06)' }}>
-            Portfolio Samples & Resume
-          </h3>
-
-          {localPortfolio?.projectSamples?.length > 0 && (
-            <div>
-              <p className="text-sm font-medium mb-2" style={{ color: '#BFBFBF' }}>
-                Uploaded samples ({localPortfolio.projectSamples.length})
-              </p>
-              <div className="space-y-2">
-                {localPortfolio.projectSamples.map((s, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-lg px-4 py-2.5"
-                    style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)' }}>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'rgba(255,104,3,0.06)', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>{SetupIcons.paperclip}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{s.title}</p>
-                      <p className="text-xs font-mono truncate" style={{ color: '#6b5445' }}>{s.fileHash?.slice(0, 24)}…</p>
-                    </div>
-                    <span className="text-xs px-2 py-0.5 rounded-md font-medium whitespace-nowrap"
-                      style={{ background: 'rgba(255,104,3,0.10)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.14)' }}>
-                      SHA-256 ✓
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <label className="text-sm font-medium" style={{ color: '#BFBFBF' }}>
-                Add Portfolio Sample <span className="text-red-500 ml-0.5">*</span>
-                {!(localPortfolio?.projectSamples?.length > 0) && (
-                  <span className="ml-1.5 text-xs font-normal" style={{ color: '#6b5445' }}>+10%</span>
-                )}
-              </label>
-            </div>
-            <p className="text-xs mb-2" style={{ color: '#6b5445' }}>Each file is SHA-256 hashed for proof of authenticity.</p>
-            <input value={sampleTitle} onChange={e => setSampleTitle(e.target.value)}
-              className="dark-input w-full mb-2"
-              placeholder="Sample title (e.g. E-Commerce App)" />
-            <label className={`block cursor-pointer border-2 border-dashed rounded-lg p-5 text-center transition-colors ${errors.portfolioSample ? 'border-red-500' : 'border-white/[0.08] hover:border-[#FF6803]'}`}
-              style={{ background: '#120a02' }}>
-              <p className="text-sm font-medium" style={{ color: '#BFBFBF' }}>
-                {uploading ? 'Uploading & generating hash…' : 'Click to upload portfolio sample'}
-              </p>
-              <p className="text-xs mt-1" style={{ color: '#6b5445' }}>Images, PDFs, zip files · Max 10 MB</p>
-              <input type="file" className="hidden" onChange={e => { setErrors(prev => ({ ...prev, portfolioSample: '' })); handleSampleUpload(e) }} disabled={uploading} />
-            </label>
-            {errors.portfolioSample && <p className="text-xs text-red-500 mt-1">{errors.portfolioSample}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <label className="text-sm font-medium" style={{ color: '#BFBFBF' }}>
-                Resume (PDF) <span className="text-red-500 ml-0.5">*</span>
-                {!localPortfolio?.resumeUrl && <span className="ml-1.5 text-xs font-normal" style={{ color: '#6b5445' }}>+5%</span>}
-              </label>
-            </div>
-            {localPortfolio?.resumeUrl ? (
-              <div className="flex items-center gap-3 rounded-lg px-4 py-3"
-                style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)' }}>
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(255,104,3,0.06)', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium flex-1 text-white">Resume uploaded</p>
-                <label className="cursor-pointer text-xs font-medium transition-colors" style={{ color: '#6b5445' }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#BFBFBF'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>
-                  Replace
-                  <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} />
-                </label>
-              </div>
-            ) : (
-              <>
-                <label className={`block cursor-pointer border-2 border-dashed rounded-lg p-5 text-center transition-colors ${errors.resume ? 'border-red-500' : 'border-white/[0.08] hover:border-[#FF6803]'}`}
-                  style={{ background: '#120a02' }}>
-                  <p className="text-sm font-medium" style={{ color: '#BFBFBF' }}>
-                    {resumeUploading ? 'Uploading…' : 'Click to upload resume PDF'}
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: '#6b5445' }}>PDF only · Max 10 MB</p>
-                  <input type="file" accept=".pdf" className="hidden" onChange={e => { setErrors(prev => ({ ...prev, resume: '' })); handleResumeUpload(e) }} disabled={resumeUploading} />
-                </label>
-                {errors.resume && <p className="text-xs text-red-500 mt-1">{errors.resume}</p>}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ── Save / Cancel ── always at the very bottom ── */}
       <div className="dark-card p-4 flex gap-3">
         <button onClick={handleSave} disabled={saving}
@@ -1148,9 +1022,9 @@ function ProfileEditForm({ portfolio, user, onSave, onCancel }) {
         </button>
         <button onClick={onCancel}
           className="flex-1 font-medium py-2.5 rounded-lg text-sm transition-colors"
-          style={{ border: '1px solid rgba(255,104,3,0.10)', background: '#120a02', color: '#BFBFBF' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,104,3,0.06)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#120a02' }}>
+          style={{ border: '1px solid rgba(255,104,3,0.15)', background: '#120a02', color: '#BFBFBF' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,104,3,0.06)'; e.currentTarget.style.color = '#F5EDE4' }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#120a02'; e.currentTarget.style.color = '#BFBFBF' }}>
           Cancel
         </button>
       </div>
@@ -1197,15 +1071,19 @@ export default function ProfileSetup() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'transparent' }}>
+    <div className="min-h-screen">
       <Navbar />
 
       {/* Loading state */}
       {mode === 'loading' && (
         <div className="max-w-2xl mx-auto p-6">
           <div className="dark-card p-12 text-center">
-            <div className="animate-spin h-6 w-6 border-2 border-t-transparent rounded-full mx-auto mb-3"
-              style={{ borderColor: '#FF6803', borderTopColor: 'transparent' }} />
+            <div className="mx-auto mb-3" style={{
+              width: '28px', height: '28px', borderRadius: '50%',
+              border: '2px solid rgba(255,104,3,0.12)',
+              borderTop: '2px solid #FF6803',
+              animation: 'spin 0.8s linear infinite',
+            }} />
             <p className="text-sm" style={{ color: '#6b5445' }}>Loading your profile…</p>
           </div>
         </div>
@@ -1216,13 +1094,13 @@ export default function ProfileSetup() {
         <div className="max-w-5xl mx-auto px-6 pb-16">
           <div className="flex items-center justify-between mb-5 pt-6">
             <div>
-              <h1 className="text-xl font-semibold text-white">My Profile</h1>
+              <h1 className="text-xl font-semibold" style={{ color: '#F5EDE4' }}>My Profile</h1>
               <p className="text-sm mt-0.5" style={{ color: '#6b5445' }}>This is exactly how others see you</p>
             </div>
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm font-medium transition-colors"
               style={{ color: '#6b5445' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
-              onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>
+              onMouseEnter={e => e.currentTarget.style.color = '#F5EDE4'}
+              onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               Back
             </button>
@@ -1238,13 +1116,13 @@ export default function ProfileSetup() {
         <div className="max-w-3xl mx-auto p-6 pb-16">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-xl font-semibold text-white">My Profile</h1>
+              <h1 className="text-xl font-semibold" style={{ color: '#F5EDE4' }}>My Profile</h1>
               <p className="text-sm mt-0.5" style={{ color: '#6b5445' }}>Fill in your details and save</p>
             </div>
             <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm font-medium transition-colors"
               style={{ color: '#6b5445' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
-              onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>
+              onMouseEnter={e => e.currentTarget.style.color = '#F5EDE4'}
+              onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               Back
             </button>

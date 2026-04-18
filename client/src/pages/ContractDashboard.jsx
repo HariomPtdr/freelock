@@ -3,8 +3,23 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import api from '../api'
 import Navbar from '../components/Navbar'
 import toast from 'react-hot-toast'
+import AiDetectionBadge from '../components/AiDetectionBadge'
 
-const CONFETTI_COLORS = ['#FF6803', '#BFBFBF', '#FF6803', '#22c55e', '#FF6803', '#FF6803', '#BFBFBF']
+/** Build a full URL for a file stored either locally (/uploads/...) or on a CDN (https://...). */
+const fileUrl = (path) => {
+  if (!path) return null
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  return `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${path}`
+}
+
+/** Build an authenticated download URL by appending the auth token as a query param. */
+const authFileUrl = (milestoneId, type) => {
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:5001'
+  const token = localStorage.getItem('token')
+  return `${base}/api/milestones/file/${milestoneId}/${type}?token=${encodeURIComponent(token)}`
+}
+
+const CONFETTI_COLORS = ['#FF6803', '#AE3A02', '#f59e0b', '#10b981', '#BFBFBF', '#F5EDE4', '#fbbf24']
 
 function Confetti({ active }) {
   if (!active) return null
@@ -31,17 +46,17 @@ function Confetti({ active }) {
 }
 
 const statusColors = {
-  pending_deposit: { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.10)' },
-  funded:          { background: 'rgba(255,104,3,0.1)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.2)' },
-  in_progress:     { background: 'rgba(255,104,3,0.10)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.14)' },
-  submitted:       { background: 'rgba(255,104,3,0.08)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.12)' },
-  review:          { background: 'rgba(245,158,11,0.08)', color: '#FF6803', border: '1px solid rgba(245,158,11,0.2)' },
+  pending_deposit: { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.08)' },
+  funded:          { background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' },
+  in_progress:     { background: 'rgba(255,104,3,0.10)', color: '#FF6803', border: '1px solid rgba(255,104,3,0.22)' },
+  submitted:       { background: 'rgba(255,104,3,0.06)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.12)' },
+  review:          { background: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' },
   approved:        { background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' },
-  inaccurate_1:    { background: 'rgba(245,158,11,0.08)', color: '#FF6803', border: '1px solid rgba(245,158,11,0.2)' },
+  inaccurate_1:    { background: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' },
   inaccurate_2:    { background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' },
   disputed:        { background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' },
-  released:        { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.06)' },
-  refunded:        { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.06)' },
+  released:        { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.08)' },
+  refunded:        { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.08)' },
 }
 
 const statusLabels = {
@@ -57,6 +72,14 @@ const statusLabels = {
   released: 'Payment Released',
   refunded: 'Refunded',
 }
+
+const SectionLabel = ({ text }) => (
+  <div className="flex items-center gap-3 mb-4">
+    <div className="h-px flex-1" style={{ background: 'rgba(255,104,3,0.12)' }} />
+    <h2 className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: '#BFBFBF' }}>{text}</h2>
+    <div className="h-px flex-1" style={{ background: 'rgba(255,104,3,0.12)' }} />
+  </div>
+)
 
 export default function ContractDashboard() {
   const { id } = useParams()
@@ -115,6 +138,11 @@ export default function ContractDashboard() {
         setActionLoading(null)
         return
       }
+      if (!window.Razorpay) {
+        toast.error('Payment gateway failed to load. Please refresh and try again.')
+        setActionLoading(null)
+        return
+      }
       const clientTotal = data.clientTotal || Math.round(milestone.amount * 1.02)
       const isTestKey = data.razorpayKeyId?.startsWith('rzp_test_')
       const options = {
@@ -136,7 +164,7 @@ export default function ContractDashboard() {
           } catch { toast.error('Payment verification failed. Contact support if amount was deducted.') }
         },
         prefill: { name: user.name, email: user.email },
-        theme: { color: '#09090b' },
+        theme: { color: '#FF6803' },
         notes: { milestoneId: milestone._id, platformFee: data.clientFee },
         modal: {
           ondismiss: () => { toast('Payment cancelled.'); setActionLoading(null) },
@@ -219,14 +247,20 @@ export default function ContractDashboard() {
     disputes.find(d => d.milestone?._id === milestoneId || d.milestone === milestoneId)
 
   if (loading) return (
-    <div className="min-h-screen" style={{ background: 'transparent' }}><Navbar />
+    <div className="min-h-screen">
+      <Navbar />
       <div className="flex justify-center py-20">
-        <div className="animate-spin h-6 w-6 border-2 border-t-transparent rounded-full" style={{ borderColor: '#FF6803', borderTopColor: 'transparent' }} />
+        <div className="relative w-8 h-8">
+          <div className="absolute inset-0 border-2 rounded-full" style={{ borderColor: 'rgba(255,104,3,0.12)' }} />
+          <div className="absolute inset-0 border-2 border-t-[#FF6803] rounded-full animate-spin" style={{ borderColor: 'transparent', borderTopColor: '#FF6803' }} />
+        </div>
       </div>
     </div>
   )
+
   if (!contract) return (
-    <div className="min-h-screen" style={{ background: 'transparent' }}><Navbar />
+    <div className="min-h-screen">
+      <Navbar />
       <p className="text-center py-12" style={{ color: '#6b5445' }}>Contract not found</p>
     </div>
   )
@@ -257,70 +291,98 @@ export default function ContractDashboard() {
   })()
 
   return (
-    <div className="min-h-screen" style={{ background: 'transparent' }}>
+    <div className="min-h-screen">
       <Confetti active={showConfetti} />
       <Navbar />
       <div className="max-w-4xl mx-auto p-6">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm font-medium mb-4 transition-colors"
+
+        {/* Back */}
+        <button onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-sm font-medium mb-5 transition-colors"
           style={{ color: '#6b5445' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#f4f4f5'}
-          onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          onMouseEnter={e => e.currentTarget.style.color = '#F5EDE4'}
+          onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
           Back
         </button>
 
-        {/* Header */}
-        <div className="dark-card p-6 mb-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs font-mono mb-1" style={{ color: '#6b5445' }}>CONTRACT #{contract.hashId}</div>
-              <h1 className="text-xl font-semibold text-white">{contract.job?.title}</h1>
-              <div className="text-sm mt-1" style={{ color: '#BFBFBF' }}>
+        {/* Header Card */}
+        <div className="rounded-2xl p-6 mb-5" style={{ background: 'linear-gradient(135deg, rgba(18,10,2,0.90) 0%, rgba(28,16,8,0.85) 100%)', border: '1px solid rgba(255,104,3,0.18)', backdropFilter: 'blur(24px)', boxShadow: '0 0 60px rgba(255,104,3,0.06), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-mono font-semibold uppercase tracking-wider mb-1" style={{ color: '#6b5445' }}>
+                Contract #{contract.hashId}
+              </div>
+              <h1 className="text-xl font-bold" style={{ color: '#F5EDE4' }}>{contract.job?.title}</h1>
+              <div className="text-sm mt-1 flex flex-wrap items-center gap-x-1" style={{ color: '#BFBFBF' }}>
                 {user.role === 'client'
-                  ? <><span style={{ color: '#6b5445' }}>Freelancer: </span><Link to={`/freelancers/${contract.freelancer?._id}`} className="hover:underline underline-offset-2 font-medium transition-colors" style={{ color: '#BFBFBF' }}>{contract.freelancer?.name}</Link></>
-                  : <><span style={{ color: '#6b5445' }}>Client: </span><Link to={`/clients/${contract.client?._id}`} className="hover:underline underline-offset-2 font-medium transition-colors" style={{ color: '#BFBFBF' }}>{contract.client?.name}</Link></>
+                  ? <><span style={{ color: '#6b5445' }}>Freelancer: </span>
+                      <Link to={`/freelancers/${contract.freelancer?._id}`}
+                        className="font-semibold hover:underline underline-offset-2 transition-colors"
+                        style={{ color: '#FF6803' }}>{contract.freelancer?.name}</Link></>
+                  : <><span style={{ color: '#6b5445' }}>Client: </span>
+                      <Link to={`/clients/${contract.client?._id}`}
+                        className="font-semibold hover:underline underline-offset-2 transition-colors"
+                        style={{ color: '#FF6803' }}>{contract.client?.name}</Link></>
                 }
-                {' · '}Total: <strong className="text-white">₹{contract.amount?.toLocaleString()}</strong>
-                {' · '}{totalPhases} phases
+                <span style={{ color: '#6b5445' }}> · </span>
+                <span style={{ color: '#6b5445' }}>Total: </span>
+                <strong style={{ color: '#F5EDE4' }}>₹{contract.amount?.toLocaleString()}</strong>
+                <span style={{ color: '#6b5445' }}> · {totalPhases} phases</span>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className="px-2.5 py-1 rounded-md text-xs font-medium" style={
-                contract.status === 'active' ? { background: 'rgba(255,104,3,0.10)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.14)' } :
-                contract.status === 'pending_advance' ? { background: 'rgba(245,158,11,0.08)', color: '#FF6803', border: '1px solid rgba(245,158,11,0.2)' } :
-                { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.06)' }
+            <div className="flex-shrink-0">
+              <span className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={
+                contract.status === 'active'
+                  ? { background: 'rgba(255,104,3,0.12)', color: '#FF6803', border: '1px solid rgba(255,104,3,0.25)' }
+                  : contract.status === 'pending_advance'
+                  ? { background: 'rgba(245,158,11,0.08)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }
+                  : { background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.08)' }
               }>
                 {contract.status === 'pending_advance' ? 'Awaiting Advance' : contract.status}
               </span>
             </div>
           </div>
-          <div className="mt-4">
-            <div className="flex justify-between text-xs mb-1" style={{ color: '#6b5445' }}>
+
+          {/* Progress */}
+          <div className="mt-5">
+            <div className="flex justify-between text-xs mb-1.5" style={{ color: '#6b5445' }}>
               <span>{releasedCount} of {totalPhases} phases complete</span>
-              <span>{progress}%</span>
+              <span style={{ color: progress === 100 ? '#10b981' : '#BFBFBF' }}>{progress}%</span>
             </div>
-            <div className="w-full rounded-full h-1.5" style={{ background: '#120a02' }}>
-              <div className="h-1.5 rounded-full transition-all" style={{ width: `${progress}%`, background: '#FF6803' }} />
+            <div className="w-full rounded-full h-1.5" style={{ background: 'rgba(255,104,3,0.08)' }}>
+              <div className="h-1.5 rounded-full transition-all" style={{
+                width: `${progress}%`,
+                background: progress === 100
+                  ? 'linear-gradient(90deg, #10b981, #059669)'
+                  : 'linear-gradient(90deg, #FF6803, #AE3A02)'
+              }} />
             </div>
           </div>
         </div>
 
-        {/* Pending advance payment banner */}
+        {/* Pending advance payment banners */}
         {contract.status === 'pending_advance' && user.role === 'client' && (
           <div className="rounded-xl p-4 mb-5 flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.15)' }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#FF6803' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#f59e0b' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: '#FF6803' }}>Advance payment required</p>
+              <p className="text-sm font-semibold" style={{ color: '#f59e0b' }}>Advance payment required</p>
               <p className="text-xs mt-0.5" style={{ color: '#d97706' }}>The project will not begin until the advance payment is secured in escrow. Pay below to activate the contract.</p>
             </div>
           </div>
         )}
         {contract.status === 'pending_advance' && user.role === 'freelancer' && (
-          <div className="rounded-xl p-4 mb-5 flex items-start gap-3" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)' }}>
+          <div className="rounded-xl p-4 mb-5 flex items-start gap-3" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.10)' }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,104,3,0.06)' }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#6b5445' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#6b5445' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
             <div>
               <p className="text-sm font-semibold" style={{ color: '#BFBFBF' }}>Waiting for client's advance payment</p>
@@ -332,14 +394,14 @@ export default function ContractDashboard() {
         {/* Advance Payment Card */}
         {advanceMilestone && (
           <div className="dark-card p-5 mb-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #FF6803, #AE3A02)', color: '#fff' }}>A</div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm text-white">{advanceMilestone.title}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md" style={{ background: 'rgba(255,104,3,0.1)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.2)' }}>Advance</span>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 text-white"
+                  style={{ background: 'linear-gradient(135deg, #FF6803, #AE3A02)', boxShadow: '0 0 14px rgba(255,104,3,0.35)' }}>A</div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm" style={{ color: '#F5EDE4' }}>{advanceMilestone.title}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-md" style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>Advance</span>
                     <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={statusColors[advanceMilestone.status] || statusColors.pending_deposit}>
                       {advanceMilestone.status === 'funded' ? 'Funded' : (statusLabels[advanceMilestone.status] || advanceMilestone.status)}
                     </span>
@@ -347,13 +409,13 @@ export default function ContractDashboard() {
                   <p className="text-xs mt-0.5" style={{ color: '#6b5445' }}>Held in escrow — released to freelancer when all phases are complete</p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-lg font-bold text-white">₹{advanceMilestone.amount?.toLocaleString()}</div>
+              <div className="text-right flex-shrink-0">
+                <div className="text-lg font-bold" style={{ color: '#F5EDE4' }}>₹{advanceMilestone.amount?.toLocaleString()}</div>
                 {user.role === 'client' && advanceMilestone.status === 'pending_deposit' && (
                   <>
-                    <p className="text-[10px] mt-0.5" style={{ color: '#6b5445' }}>+₹{Math.round(advanceMilestone.amount * 0.02).toLocaleString()} platform fee = ₹{Math.round(advanceMilestone.amount * 1.02).toLocaleString()} total</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: '#6b5445' }}>+₹{Math.round(advanceMilestone.amount * 0.02).toLocaleString()} fee = ₹{Math.round(advanceMilestone.amount * 1.02).toLocaleString()} total</p>
                     <button onClick={() => handleFund(advanceMilestone)} disabled={actionLoading === advanceMilestone._id + 'fund'}
-                      className="btn-purple mt-1 px-3 py-1 rounded-lg text-xs font-medium disabled:opacity-50 transition-colors">
+                      className="btn-purple mt-1.5 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50 transition-colors">
                       {actionLoading === advanceMilestone._id + 'fund' ? '...' : 'Fund Advance'}
                     </button>
                   </>
@@ -362,7 +424,7 @@ export default function ContractDashboard() {
             </div>
             {user.role === 'freelancer' && advanceMilestone.status === 'released' && (
               <div className="mt-3 rounded-lg p-3 text-sm" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
-                <span className="font-medium" style={{ color: '#10b981' }}>Advance payment sent to your account</span>
+                <span className="font-semibold" style={{ color: '#10b981' }}>Advance payment sent to your account</span>
                 <span className="ml-2" style={{ color: '#059669' }}>— ₹{advanceMilestone.amount?.toLocaleString()}</span>
               </div>
             )}
@@ -370,7 +432,8 @@ export default function ContractDashboard() {
         )}
 
         {/* Phase Milestones */}
-        <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#6b5445' }}>Project Phases</h2>
+        <SectionLabel text="Project Phases" />
+
         {phaseMilestones.map(m => {
           const rf = reviewForms[m._id] || {}
           const sf = submitForms[m._id] || {}
@@ -380,51 +443,52 @@ export default function ContractDashboard() {
 
           return (
             <div key={m._id} className="rounded-2xl p-5 mb-3" style={{
-              background: '#111113',
-              border: m.status === 'disputed' ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,104,3,0.10)'
+              background: 'rgba(18,10,2,0.85)',
+              border: m.status === 'disputed' ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,104,3,0.12)',
+              backdropFilter: 'blur(16px)',
             }}>
               {/* Phase Header */}
-              <div className="flex items-start gap-4 mb-3">
+              <div className="flex items-start gap-4 mb-4">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #FF6803, #AE3A02)' }}>
+                  style={{ background: 'linear-gradient(135deg, #FF6803, #AE3A02)', boxShadow: '0 0 12px rgba(255,104,3,0.30)' }}>
                   {m.milestoneNumber}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-sm text-white">{m.title}</h3>
+                    <h3 className="font-semibold text-sm" style={{ color: '#F5EDE4' }}>{m.title}</h3>
                     <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={statusColors[m.status] || statusColors.pending_deposit}>
                       {statusLabels[m.status] || m.status}
                     </span>
                     {m.maxRevisions && (
-                      <span className="text-xs px-2 py-0.5 rounded-md" style={{ background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.06)' }}>
+                      <span className="text-xs px-2 py-0.5 rounded-md" style={{ background: '#120a02', color: '#6b5445', border: '1px solid rgba(255,104,3,0.08)' }}>
                         Revisions: {m.inaccuracyCount}/{m.maxRevisions}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-lg font-bold text-white">₹{m.amount?.toLocaleString()}</div>
+                  <div className="text-lg font-bold" style={{ color: '#F5EDE4' }}>₹{m.amount?.toLocaleString()}</div>
                   <div className="text-xs" style={{ color: '#6b5445' }}>Due {new Date(m.deadline).toLocaleDateString()}</div>
                 </div>
               </div>
 
               {/* Phase Requirements */}
               {m.description && (
-                <div className="rounded-lg p-3 mb-3 text-sm whitespace-pre-line" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: '#6b5445' }}>Requirements</p>
-                  <span style={{ color: '#BFBFBF' }}>{m.description}</span>
+                <div className="rounded-xl p-3 mb-3" style={{ background: 'rgba(255,104,3,0.04)', border: '1px solid rgba(255,104,3,0.10)' }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#6b5445' }}>Requirements</p>
+                  <p className="text-sm whitespace-pre-line" style={{ color: '#BFBFBF' }}>{m.description}</p>
                 </div>
               )}
 
-              {/* Deadline Extensions History */}
+              {/* Deadline Extensions */}
               {m.deadlineExtensions?.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: '#6b5445' }}>Deadline Extensions ({m.deadlineExtensions.length})</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#6b5445' }}>Deadline Extensions ({m.deadlineExtensions.length})</p>
                   <div className="space-y-1">
                     {m.deadlineExtensions.map((ext, i) => (
                       <div key={i} className="flex items-start gap-2 text-xs rounded-lg px-3 py-2" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', color: '#BFBFBF' }}>
-                        <span className="font-medium" style={{ color: '#FF6803' }}>#{i + 1}</span>
-                        <span>Extended to <strong className="text-white">{new Date(ext.newDeadline).toLocaleDateString()}</strong></span>
+                        <span className="font-semibold" style={{ color: '#f59e0b' }}>#{i + 1}</span>
+                        <span>Extended to <strong style={{ color: '#F5EDE4' }}>{new Date(ext.newDeadline).toLocaleDateString()}</strong></span>
                         {ext.reason && <span style={{ color: '#6b5445' }}>— {ext.reason}</span>}
                         <span className="ml-auto" style={{ color: '#6b5445' }}>{new Date(ext.extendedAt).toLocaleDateString()}</span>
                       </div>
@@ -435,38 +499,62 @@ export default function ContractDashboard() {
 
               {/* Submission hashes + file access */}
               {(m.submissionFileHash || m.submissionVideoHash) && (
-                <div className="rounded-lg p-3 mb-3 space-y-2" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)' }}>
-                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b5445' }}>Submitted Deliverables</p>
+                <div className="rounded-xl p-3 mb-3 space-y-2" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.10)' }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#6b5445' }}>Submitted Deliverables</p>
                   {m.submissionFileHash && (
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs" style={{ color: '#BFBFBF' }}>Code Hash: <a href={`/verify/${m.submissionFileHash}`} target="_blank" rel="noreferrer"
-                        className="hover:underline underline-offset-2 font-mono" style={{ color: '#BFBFBF' }}>{m.submissionFileHash.substring(0, 16)}...</a></span>
+                      <span className="text-xs" style={{ color: '#BFBFBF' }}>
+                        Code Hash:{' '}
+                        <a href={`/verify/${m.submissionFileHash}`} target="_blank" rel="noreferrer"
+                          className="hover:underline underline-offset-2 font-mono transition-colors" style={{ color: '#FF6803' }}>
+                          {m.submissionFileHash.substring(0, 16)}...
+                        </a>
+                      </span>
                       {(user.role === 'freelancer' || ['approved', 'released'].includes(m.status)) && (
-                        <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/milestones/file/${m._id}/code`}
-                          target="_blank" rel="noreferrer"
-                          className="text-xs hover:underline font-medium flex-shrink-0" style={{ color: '#BFBFBF' }}>Download File</a>
+                        <a href={authFileUrl(m._id, 'code')} target="_blank" rel="noreferrer" download
+                          className="text-xs hover:underline font-semibold flex-shrink-0 transition-colors" style={{ color: '#FF6803' }}>
+                          Download File
+                        </a>
                       )}
                       {user.role === 'client' && !['approved', 'released'].includes(m.status) && (
                         <span className="text-xs italic flex-shrink-0" style={{ color: '#6b5445' }}>Locked until approved</span>
                       )}
                     </div>
                   )}
-                  {m.submissionVideoHash && m.submissionVideoUrl && (
-                    <div className="space-y-1">
+                  {m.submissionVideoHash && (
+                    <div className="space-y-1.5">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-xs" style={{ color: '#BFBFBF' }}>
-                          Video Hash: <span className="font-mono" style={{ color: '#BFBFBF' }}>{m.submissionVideoHash.substring(0, 16)}...</span>
+                          Video Hash:{' '}
+                          <span className="font-mono" style={{ color: '#FF6803' }}>{m.submissionVideoHash.substring(0, 16)}...</span>
                         </span>
                         <a href={`/verify/${m.submissionVideoHash}`} target="_blank" rel="noreferrer"
-                          className="text-xs hover:underline flex-shrink-0" style={{ color: '#6b5445' }}>Verify</a>
+                          className="text-xs hover:underline flex-shrink-0 transition-colors" style={{ color: '#6b5445' }}>Verify</a>
                       </div>
                       {(user.role === 'freelancer' || ['review', 'approved', 'released', 'inaccurate_1', 'disputed'].includes(m.status)) && (
-                        <video
-                          src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${m.submissionVideoUrl}`}
-                          controls
-                          className="w-full rounded-lg max-h-64 bg-black"
-                          style={{ border: '1px solid rgba(255,104,3,0.06)' }}
-                        />
+                        <>
+                          {(m.submissionVideoUrl || m.submissionVideoHash) && (
+                            <video
+                              src={m.submissionVideoUrl ? fileUrl(m.submissionVideoUrl) : authFileUrl(m._id, 'video')}
+                              controls
+                              className="w-full rounded-xl max-h-64 bg-black"
+                              style={{ border: '1px solid rgba(255,104,3,0.12)' }}
+                              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'block') }}
+                            />
+                          )}
+                          {!m.submissionVideoUrl && m.submissionVideoHash && (
+                            <div className="rounded-xl p-3 text-center text-xs" style={{ display: 'none', background: '#120a02', border: '1px solid rgba(255,104,3,0.08)', color: '#6b5445' }}>
+                              Video file not available — freelancer may need to re-submit deliverables.
+                            </div>
+                          )}
+                          <AiDetectionBadge
+                            milestoneId={m._id}
+                            initialStatus={m.rdStatus}
+                            initialScore={m.rdScore}
+                            initialAnalyzedAt={m.rdAnalyzedAt}
+                            initialSimulated={m.rdSimulated}
+                          />
+                        </>
                       )}
                     </div>
                   )}
@@ -475,13 +563,13 @@ export default function ContractDashboard() {
 
               {/* Client review note */}
               {m.inaccuracyNote && (
-                <div className="rounded-lg p-3 mb-3 text-sm" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  <span className="font-medium" style={{ color: '#FF6803' }}>Client feedback: </span>
-                  <span style={{ color: '#d97706' }}>{m.inaccuracyNote}</span>
+                <div className="rounded-xl p-3 mb-3" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  <span className="text-sm font-semibold" style={{ color: '#f59e0b' }}>Client feedback: </span>
+                  <span className="text-sm" style={{ color: '#d97706' }}>{m.inaccuracyNote}</span>
                 </div>
               )}
 
-              {/* Exchange confirmation — shown on release */}
+              {/* Exchange confirmation */}
               {['released', 'approved'].includes(m.status) && (
                 <div className="rounded-xl p-4 mb-3 space-y-2" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)' }}>
                   <p className="text-sm font-semibold" style={{ color: '#10b981' }}>Exchange Complete</p>
@@ -493,18 +581,16 @@ export default function ContractDashboard() {
                       ? 'Deliverable files unlocked — you can download the code below.'
                       : 'Client has been granted access to your deliverable files.'}
                   </div>
-                  <div className={`flex items-center justify-between gap-2 text-sm rounded-lg px-3 py-2`} style={
+                  <div className="flex items-center justify-between gap-2 text-sm rounded-lg px-3 py-2" style={
                     m.payoutStatus === 'processed' ? { background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' } :
-                    m.payoutStatus === 'processing' ? { background: 'rgba(255,104,3,0.08)', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.2)' } :
+                    m.payoutStatus === 'processing' ? { background: 'rgba(59,130,246,0.08)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' } :
                     m.payoutStatus === 'failed' ? { background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' } :
-                    { background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.06)' }
+                    { background: '#120a02', color: '#BFBFBF', border: '1px solid rgba(255,104,3,0.08)' }
                   }>
                     <div className="flex items-center gap-2">
                       <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d={m.payoutStatus === 'processed'
-                            ? 'M5 13l4 4L19 7'
-                            : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'} />
+                          d={m.payoutStatus === 'processed' ? 'M5 13l4 4L19 7' : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'} />
                       </svg>
                       <span className="font-medium">
                         {m.payoutStatus === 'processed'
@@ -514,7 +600,7 @@ export default function ContractDashboard() {
                           : (user.role === 'freelancer' ? 'Payout pending — add bank/UPI details in your profile.' : 'Awaiting freelancer payout setup.')}
                       </span>
                     </div>
-                    <span className="font-bold text-white flex-shrink-0">₹{m.amount?.toLocaleString()}</span>
+                    <span className="font-bold flex-shrink-0" style={{ color: '#F5EDE4' }}>₹{m.amount?.toLocaleString()}</span>
                   </div>
                 </div>
               )}
@@ -525,7 +611,7 @@ export default function ContractDashboard() {
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-semibold" style={{ color: '#f87171' }}>Dispute Active — Admin Review</p>
                     <button onClick={() => setExpandedDispute(expandedDispute === dispute._id ? null : dispute._id)}
-                      className="text-xs hover:underline" style={{ color: '#f87171' }}>
+                      className="text-xs hover:underline underline-offset-2 transition-colors" style={{ color: '#f87171' }}>
                       {expandedDispute === dispute._id ? 'Hide' : 'View details'}
                     </button>
                   </div>
@@ -535,7 +621,7 @@ export default function ContractDashboard() {
                     <div className="mt-3 space-y-3">
                       {dispute.evidenceSummary?.submissionHashes?.length > 0 && (
                         <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: '#f87171' }}>Submitted File Hashes (Proof of Work)</p>
+                          <p className="text-xs font-semibold mb-1" style={{ color: '#f87171' }}>Submitted File Hashes (Proof of Work)</p>
                           {dispute.evidenceSummary.submissionHashes.map((h, i) => (
                             <a key={i} href={`/verify/${h}`} target="_blank" rel="noreferrer"
                               className="block text-xs font-mono hover:underline" style={{ color: '#fca5a5' }}>{h}</a>
@@ -547,18 +633,17 @@ export default function ContractDashboard() {
                       )}
                       {dispute.evidence?.length > 0 && (
                         <div>
-                          <p className="text-xs font-medium mb-1" style={{ color: '#f87171' }}>Evidence Submitted ({dispute.evidence.length})</p>
+                          <p className="text-xs font-semibold mb-1" style={{ color: '#f87171' }}>Evidence Submitted ({dispute.evidence.length})</p>
                           {dispute.evidence.map((e, i) => (
-                            <div key={i} className="text-xs rounded-lg p-2 mb-1" style={{ background: 'rgba(255,104,3,0.04)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                            <div key={i} className="text-xs rounded-lg p-2 mb-1" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(239,68,68,0.15)' }}>
                               <div className="flex items-center gap-1.5 mb-0.5">
-                                <span className="font-medium text-white">{e.submittedBy?.name || 'User'}</span>
+                                <span className="font-semibold" style={{ color: '#F5EDE4' }}>{e.submittedBy?.name || 'User'}</span>
                                 <span className="capitalize" style={{ color: '#6b5445' }}>({e.submittedBy?.role})</span>
                               </div>
                               <p style={{ color: '#fca5a5' }}>{e.description}</p>
                               {e.fileUrl && (
-                                <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${e.fileUrl}`}
-                                  target="_blank" rel="noopener noreferrer"
-                                  className="underline underline-offset-1 mt-0.5 inline-block" style={{ color: '#BFBFBF' }}>
+                                <a href={fileUrl(e.fileUrl)} target="_blank" rel="noopener noreferrer"
+                                  className="underline underline-offset-1 mt-0.5 inline-block" style={{ color: '#60a5fa' }}>
                                   View attachment
                                 </a>
                               )}
@@ -580,14 +665,14 @@ export default function ContractDashboard() {
                             </div>
                             <input type="file" className="hidden"
                               onChange={e => setEvidenceForms({ ...evidenceForms, [dispute._id]: { ...evidenceForms[dispute._id], file: e.target.files[0] } })} />
-                            <span className="text-xs font-medium px-3 py-2 rounded-lg flex-shrink-0 transition-colors cursor-pointer"
+                            <span className="text-xs font-medium px-3 py-2 rounded-lg flex-shrink-0 cursor-pointer transition-colors"
                               style={{ border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#f87171' }}>
                               Browse
                             </span>
                           </label>
                           <button onClick={() => handleSubmitEvidence(dispute._id)}
                             disabled={actionLoading === dispute._id + 'evidence'}
-                            className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors text-white"
+                            className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors text-white"
                             style={{ background: '#dc2626' }}
                             onMouseEnter={e => e.currentTarget.style.background = '#b91c1c'}
                             onMouseLeave={e => e.currentTarget.style.background = '#dc2626'}>
@@ -596,8 +681,8 @@ export default function ContractDashboard() {
                         </div>
                       )}
                       {dispute.status === 'resolved' && (
-                        <div className="rounded-lg p-3 text-sm" style={{ background: 'rgba(255,104,3,0.04)', border: '1px solid rgba(239,68,68,0.1)' }}>
-                          <span className="font-medium text-white">Resolution: </span>
+                        <div className="rounded-lg p-3 text-sm" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(239,68,68,0.1)' }}>
+                          <span className="font-semibold" style={{ color: '#F5EDE4' }}>Resolution: </span>
                           <span className="capitalize" style={{ color: '#BFBFBF' }}>{dispute.resolution?.replace(/_/g, ' ')}</span>
                           {dispute.splitPercent && <span style={{ color: '#6b5445' }}> ({dispute.splitPercent}% to freelancer)</span>}
                         </div>
@@ -612,30 +697,30 @@ export default function ContractDashboard() {
                 <div className="space-y-3">
                   {m.status === 'pending_deposit' && m._id === fundablePhaseId && (
                     <div>
-                      <p className="text-[10px] mb-1" style={{ color: '#6b5445' }}>
-                        ₹{m.amount?.toLocaleString()} + ₹{Math.round(m.amount * 0.02).toLocaleString()} platform fee = <span className="font-semibold text-white">₹{Math.round(m.amount * 1.02).toLocaleString()} total</span>
+                      <p className="text-[10px] mb-1.5" style={{ color: '#6b5445' }}>
+                        ₹{m.amount?.toLocaleString()} + ₹{Math.round(m.amount * 0.02).toLocaleString()} platform fee = <span className="font-bold" style={{ color: '#F5EDE4' }}>₹{Math.round(m.amount * 1.02).toLocaleString()} total</span>
                       </p>
                       <button onClick={() => handleFund(m)} disabled={isL('fund')}
-                        className="btn-purple px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors">
+                        className="btn-purple px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50">
                         {isL('fund') ? 'Processing...' : `Fund Phase — ₹${Math.round(m.amount * 1.02).toLocaleString()}`}
                       </button>
                     </div>
                   )}
                   {m.status === 'pending_deposit' && m._id !== fundablePhaseId && (
-                    <div className="text-xs rounded-lg px-3 py-2" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                    <div className="text-xs rounded-xl px-3 py-2.5" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.08)', color: '#6b5445' }}>
                       Locked — {phaseLockReason ? `${phaseLockReason}. Funding will unlock once it is fully resolved.` : `complete Phase ${m.milestoneNumber - 1} first to unlock funding for this phase.`}
                     </div>
                   )}
 
                   {m.status === 'funded' && (
-                    <div className="rounded-lg p-3 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                    <div className="rounded-xl px-3 py-2.5 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.08)', color: '#6b5445' }}>
                       Waiting for freelancer to upload deliverables and demo video.
                     </div>
                   )}
 
                   {m.status === 'review' && (
                     <div className="space-y-3">
-                      <div className="rounded-lg p-3 text-xs" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                      <div className="rounded-xl p-3 text-xs" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.08)', color: '#6b5445' }}>
                         Review the demo video and deliverables above before approving. Approving will unlock files for download.
                       </div>
                       <textarea value={rf.note || ''} rows={2} placeholder="Review notes (optional)"
@@ -643,13 +728,13 @@ export default function ContractDashboard() {
                         className="dark-input w-full" />
                       <div className="flex gap-2 flex-wrap">
                         <button onClick={() => doAction(m._id, 'review', { approved: true, note: rf.note })} disabled={isL('review')}
-                          className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors text-white"
+                          className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors text-white"
                           style={{ background: '#059669' }}
                           onMouseEnter={e => e.currentTarget.style.background = '#047857'}
                           onMouseLeave={e => e.currentTarget.style.background = '#059669'}>
                           {isL('review') ? '...' : 'Approve Phase'}
                         </button>
-                        <div className="flex-1 space-y-1 min-w-48">
+                        <div className="flex-1 space-y-1.5 min-w-48">
                           <p className="text-xs" style={{ color: '#6b5445' }}>
                             Reschedule attempts: {m.inaccuracyCount}/{m.maxRevisions} used
                             {m.inaccuracyCount + 1 >= m.maxRevisions ? ' — next disapproval triggers a dispute' : ''}
@@ -660,10 +745,10 @@ export default function ContractDashboard() {
                           <button
                             onClick={() => doAction(m._id, 'review', { approved: false, inaccuracyNote: rf.inaccuracyNote })}
                             disabled={isL('review') || !rf.inaccuracyNote}
-                            className="w-full px-4 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+                            className="w-full px-4 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
                             style={m.inaccuracyCount + 1 >= m.maxRevisions
                               ? { border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#f87171' }
-                              : { border: '1px solid rgba(255,104,3,0.10)', background: '#120a02', color: '#BFBFBF' }}>
+                              : { border: '1px solid rgba(255,104,3,0.12)', background: '#120a02', color: '#BFBFBF' }}>
                             {m.inaccuracyCount + 1 >= m.maxRevisions
                               ? 'Disapprove (triggers dispute)'
                               : `Disapprove & Reschedule (attempt ${m.inaccuracyCount + 1}/${m.maxRevisions})`}
@@ -679,15 +764,15 @@ export default function ContractDashboard() {
                       <details className="text-xs">
                         <summary className="cursor-pointer transition-colors" style={{ color: '#6b5445' }}
                           onMouseEnter={e => e.currentTarget.style.color = '#BFBFBF'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>Raise a dispute</summary>
+                          onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>Raise a dispute</summary>
                         <div className="mt-2 flex gap-2">
                           <input value={evf.reason || ''} placeholder="Reason for dispute"
                             onChange={e => setEvidenceForms({ ...evidenceForms, [m._id]: { ...evf, reason: e.target.value } })}
                             className="flex-1 rounded-lg px-3 py-1.5 text-sm focus:outline-none transition-colors"
-                            style={{ border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)', color: '#f4f4f5' }} />
+                            style={{ border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)', color: '#F5EDE4' }} />
                           <button onClick={() => handleRaiseDispute(m._id, id, evf.reason)}
                             disabled={isL('dispute')}
-                            className="px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors text-white"
+                            className="px-3 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors text-white"
                             style={{ background: '#dc2626' }}
                             onMouseEnter={e => e.currentTarget.style.background = '#b91c1c'}
                             onMouseLeave={e => e.currentTarget.style.background = '#dc2626'}>
@@ -704,26 +789,26 @@ export default function ContractDashboard() {
               {user.role === 'freelancer' && (
                 <div className="space-y-2">
                   {m.status === 'pending_deposit' && m._id === fundablePhaseId && (
-                    <div className="rounded-lg p-3 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                    <div className="rounded-xl px-3 py-2.5 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.08)', color: '#6b5445' }}>
                       Waiting for client to fund this phase. Upload will be available once funded.
                     </div>
                   )}
                   {m.status === 'pending_deposit' && m._id !== fundablePhaseId && (
-                    <div className="rounded-lg p-3 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                    <div className="rounded-xl px-3 py-2.5 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.08)', color: '#6b5445' }}>
                       Locked — {phaseLockReason ? `${phaseLockReason}. This phase will unlock once it is fully resolved.` : `Phase ${m.milestoneNumber - 1} must be approved before this phase begins.`}
                     </div>
                   )}
                   {m.status === 'review' && (
-                    <div className="rounded-lg p-3 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.06)', color: '#6b5445' }}>
+                    <div className="rounded-xl px-3 py-2.5 text-sm" style={{ background: '#120a02', border: '1px solid rgba(255,104,3,0.08)', color: '#6b5445' }}>
                       Your deliverables are under client review. You'll be notified of the decision.
                     </div>
                   )}
                   {['funded', 'in_progress', 'inaccurate_1'].includes(m.status) && (
                     <div className="space-y-3">
                       {m.status === 'inaccurate_1' && (
-                        <div className="rounded-lg p-3 text-sm" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                          <span className="font-medium" style={{ color: '#FF6803' }}>Phase rescheduled.</span>
-                          <span style={{ color: '#d97706' }}> Client feedback: {m.inaccuracyNote}</span>
+                        <div className="rounded-xl p-3" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                          <span className="text-sm font-semibold" style={{ color: '#f59e0b' }}>Phase rescheduled. </span>
+                          <span className="text-sm" style={{ color: '#d97706' }}>Client feedback: {m.inaccuracyNote}</span>
                           <span className="block text-xs mt-1" style={{ color: '#92400e' }}>New deadline: {new Date(m.deadline).toLocaleDateString()} — upload corrected files below.</span>
                         </div>
                       )}
@@ -731,21 +816,25 @@ export default function ContractDashboard() {
                         onChange={e => setSubmitForms({ ...submitForms, [m._id]: { ...sf, note: e.target.value } })}
                         className="dark-input w-full" />
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold" style={{ color: '#BFBFBF' }}>Code / Deliverable File <span className="text-red-500">*</span></label>
+                        <label className="text-xs font-semibold" style={{ color: '#BFBFBF' }}>
+                          Code / Deliverable File <span style={{ color: '#f87171' }}>*</span>
+                        </label>
                         <input type="file" onChange={e => setSubmitForms({ ...submitForms, [m._id]: { ...sf, file: e.target.files[0] } })}
-                          className="block w-full text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-medium transition-colors"
+                          className="block w-full text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-semibold transition-colors"
                           style={{ color: '#6b5445' }} />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold" style={{ color: '#BFBFBF' }}>Demo Video <span className="text-red-500">*</span></label>
+                        <label className="text-xs font-semibold" style={{ color: '#BFBFBF' }}>
+                          Demo Video <span style={{ color: '#f87171' }}>*</span>
+                        </label>
                         <p className="text-xs" style={{ color: '#6b5445' }}>Must show all features described in the phase requirements. Client reviews this before approving.</p>
                         <input type="file" accept="video/*" onChange={e => setSubmitForms({ ...submitForms, [m._id]: { ...sf, video: e.target.files[0] } })}
-                          className="block w-full text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-medium transition-colors"
+                          className="block w-full text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-semibold transition-colors"
                           style={{ color: '#6b5445' }} />
                         <p className="text-xs" style={{ color: '#6b5445' }}>SHA-256 hash recorded on submission. Client cannot access files until phase is approved.</p>
                       </div>
                       <button onClick={() => handleSubmitFile(m._id)} disabled={isL('submit')}
-                        className="btn-purple px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors">
+                        className="btn-purple px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50">
                         {isL('submit') ? 'Submitting...' : 'Submit Deliverables'}
                       </button>
                     </div>
@@ -757,15 +846,15 @@ export default function ContractDashboard() {
                       <details className="text-xs">
                         <summary className="cursor-pointer transition-colors" style={{ color: '#6b5445' }}
                           onMouseEnter={e => e.currentTarget.style.color = '#BFBFBF'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>Raise a dispute</summary>
+                          onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>Raise a dispute</summary>
                         <div className="mt-2 flex gap-2">
                           <input value={evf.reason || ''} placeholder="Reason for dispute"
                             onChange={e => setEvidenceForms({ ...evidenceForms, [m._id]: { ...evf, reason: e.target.value } })}
                             className="flex-1 rounded-lg px-3 py-1.5 text-sm focus:outline-none transition-colors"
-                            style={{ border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)', color: '#f4f4f5' }} />
+                            style={{ border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)', color: '#F5EDE4' }} />
                           <button onClick={() => handleRaiseDispute(m._id, id, evf.reason)}
                             disabled={isL('dispute')}
-                            className="px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors text-white"
+                            className="px-3 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors text-white"
                             style={{ background: '#dc2626' }}
                             onMouseEnter={e => e.currentTarget.style.background = '#b91c1c'}
                             onMouseLeave={e => e.currentTarget.style.background = '#dc2626'}>
@@ -783,7 +872,7 @@ export default function ContractDashboard() {
 
         {/* Contract Withdrawal */}
         {contract.status === 'active' && user.role === 'client' && (
-          <div className="text-center mt-4">
+          <div className="text-center mt-6 pb-2">
             <button onClick={async () => {
               try {
                 const { data } = await api.post(`/api/contracts/${id}/withdraw`)
@@ -793,7 +882,7 @@ export default function ContractDashboard() {
             }} className="text-sm underline underline-offset-2 transition-colors"
               style={{ color: '#6b5445' }}
               onMouseEnter={e => e.currentTarget.style.color = '#BFBFBF'}
-              onMouseLeave={e => e.currentTarget.style.color = '#1c1008'}>
+              onMouseLeave={e => e.currentTarget.style.color = '#6b5445'}>
               Close Contract Early
             </button>
           </div>

@@ -122,6 +122,14 @@ router.post('/:id/verify-payment', auth, async (req, res) => {
     if (!milestone) return res.status(404).json({ message: 'Not found' });
     if (milestone.client.toString() !== req.user.id) return res.status(403).json({ message: 'Clients only' });
 
+    if (milestone.razorpayPaymentId) {
+      return res.status(400).json({ message: 'Payment already verified for this milestone' });
+    }
+
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ message: 'Razorpay not configured on server' });
+    }
+
     const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body).digest('hex');
