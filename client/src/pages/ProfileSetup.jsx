@@ -281,11 +281,12 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
       <div className="lg:col-span-2 space-y-3">
 
         {/* Cover + Header card */}
-        <div className="dark-card overflow-hidden">
+        <div className="dark-card">
           <div className="h-28" style={{
             background: 'linear-gradient(135deg, #1a0800 0%, #2d1200 40%, #3d1a00 70%, #1a0800 100%)',
             position: 'relative',
             overflow: 'hidden',
+            borderRadius: '16px 16px 0 0',
           }}>
             <div style={{
               position: 'absolute', top: '-20px', right: '10%',
@@ -300,8 +301,8 @@ function ProfileCard({ portfolio, user, fullUser, completion, onEdit, onCompleti
           </div>
           <div className="px-5 pb-5">
             <div className="flex items-start justify-between -mt-8 mb-2">
-              <Avatar url={portfolio?.avatarUrl} name={user?.name} size={16} shape={avatarShape}
-                className="border-4 shadow" style={{ borderColor: '#120a02', boxShadow: '0 0 0 2px rgba(255,104,3,0.25)' }} />
+              <Avatar url={portfolio?.avatarUrl} name={user?.name} size={20} shape={avatarShape}
+                className="border-4 shadow flex-shrink-0" style={{ borderColor: '#120a02', boxShadow: '0 0 0 2px rgba(255,104,3,0.25)' }} />
               <div className="flex gap-2 mt-9">
                 <button onClick={onEdit}
                   className="btn-purple text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
