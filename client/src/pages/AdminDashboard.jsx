@@ -393,7 +393,7 @@ function PaymentsTab() {
   )
   if (!data) return null
 
-  const { summary, advances, contracts, clientSummary, transactions } = data
+  const { summary, advances = [], contracts = [], clientSummary = [], transactions = [] } = data
   const heldAdvances = advances.filter(a => a.held)
 
   return (
