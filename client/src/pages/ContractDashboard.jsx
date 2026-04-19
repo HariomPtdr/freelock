@@ -107,8 +107,8 @@ export default function ContractDashboard() {
         api.get(`/api/disputes/contract/${id}`)
       ])
       setContract(contractRes.data.contract)
-      setMilestones(contractRes.data.milestones)
-      setDisputes(disputeRes.data)
+      setMilestones(contractRes.data.milestones || [])
+      setDisputes(disputeRes.data || [])
     } catch { toast.error('Failed to load contract') }
     finally { setLoading(false) }
   }

@@ -28,7 +28,7 @@ export default function PaymentSettings() {
     ]).then(([me, c]) => {
       const p = me.data.portfolio
       setPortfolio(p)
-      setContracts(c.data)
+      setContracts(c.data || [])
       if (isFreelancer && p) {
         setPayoutForm({
           payoutMethod: p.payoutMethod || 'upi',

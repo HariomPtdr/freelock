@@ -757,8 +757,8 @@ export default function AdminDashboard() {
         api.get('/api/disputes/admin/all')
       ])
       setStats(statsRes.data)
-      setPendingFreelancers(pendingRes.data)
-      setDisputes(disputesRes.data)
+      setPendingFreelancers(pendingRes.data || [])
+      setDisputes(disputesRes.data || [])
     } catch {
       toast.error('Failed to load admin data')
     } finally {

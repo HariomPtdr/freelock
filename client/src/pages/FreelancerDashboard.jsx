@@ -84,12 +84,12 @@ export default function FreelancerDashboard() {
       api.get('/api/auth/me'),
       api.get('/api/transactions/my'),
     ]).then(([c, a, me, tx]) => {
-      setContracts(c.data)
-      setApplications(a.data)
+      setContracts(c.data || [])
+      setApplications(a.data || [])
       setPortfolio(me.data.portfolio)
       setVerificationStatus(me.data.user?.verificationStatus || 'pending')
-      setWalletBalance(tx.data.walletBalance)
-      setTransactions(tx.data.transactions)
+      setWalletBalance(tx.data?.walletBalance || 0)
+      setTransactions(tx.data?.transactions || [])
     }).catch(() => toast.error('Failed to load'))
       .finally(() => setLoading(false))
   }, [])
