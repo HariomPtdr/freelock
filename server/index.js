@@ -9,12 +9,16 @@ const cron = require('node-cron');
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(o => o.trim())
+  : ['http://localhost:5173'];
+
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] }
+  cors: { origin: allowedOrigins, methods: ['GET', 'POST'] }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 // Videos served statically so the browser can play them natively; code files are gated via /api/milestones/file/:id/code
 app.use('/uploads', (req, res, next) => {

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@realitydefender/realitydefender": "^0.1.16",
     "axios": "^1.6.8",
     "gsap": "^3.15.0",
     "react": "^18.3.1",
@@ -18,10 +19,6 @@
     "simple-peer": "^9.11.1",
     "socket.io-client": "^4.7.5",
     "three": "^0.184.0"
-  },
-  "dependencies": {
-    "@realitydefender/realitydefender": "^0.1.16",
-    "dotenv": "^17.4.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.1",
