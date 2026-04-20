@@ -98,7 +98,7 @@ export default function ClientProfile() {
           api.get(`/api/ratings/user/${userId}`)
         ])
         setProfile(p)
-        setRatings(r)
+        setRatings(Array.isArray(r) ? r : [])
       } catch { toast.error('Failed to load profile') }
       finally { setLoading(false) }
     }
