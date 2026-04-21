@@ -35,6 +35,8 @@ function resolveType(el) {
   return 'default'
 }
 
+const isTouch = typeof window !== 'undefined' && window.matchMedia('(hover: none), (pointer: coarse)').matches
+
 export default function CustomCursor() {
   const dotRef   = useRef(null)
   const ringRef  = useRef(null)
@@ -42,6 +44,7 @@ export default function CustomCursor() {
   const spinRef  = useRef(0)
 
   useEffect(() => {
+    if (isTouch) return
     // Hide native cursor globally
     document.documentElement.style.cursor = 'none'
 
@@ -115,6 +118,8 @@ export default function CustomCursor() {
       document.documentElement.style.cursor = ''
     }
   }, [])
+
+  if (isTouch) return null
 
   const BASE = {
     position: 'fixed', top: 0, left: 0,

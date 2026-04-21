@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { FREELANCER_BADGES, CLIENT_BADGES, BADGE_COLORS } from '../utils/badges'
 import api from '../api'
@@ -80,6 +80,10 @@ export default function Navbar() {
   const earnedBadges = allBadges.filter(b => earnedIds.includes(b.id))
   const hasAnyBadgeData = totalCount > 0
 
+  const [mobileOpen, setMobileOpen] = useState(false)
+  // Close mobile menu on route change
+  useEffect(() => { setMobileOpen(false) }, [location.pathname])
+
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/')
 
   const linkStyle = (path) => ({
@@ -127,8 +131,21 @@ export default function Navbar() {
           </span>
         </Link>
 
+        {/* Hamburger — mobile only */}
         {user && (
-          <div className="flex items-center gap-5">
+          <button
+            className="nav-hamburger"
+            onClick={() => setMobileOpen(v => !v)}
+            style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexDirection: 'column', gap: '5px', zIndex: 300 }}
+          >
+            <span style={{ display: 'block', width: '22px', height: '2px', background: mobileOpen ? '#FF6803' : '#BFBFBF', borderRadius: '2px', transition: 'transform .2s, opacity .2s', transform: mobileOpen ? 'translateY(7px) rotate(45deg)' : 'none' }} />
+            <span style={{ display: 'block', width: '22px', height: '2px', background: '#BFBFBF', borderRadius: '2px', transition: 'opacity .2s', opacity: mobileOpen ? 0 : 1 }} />
+            <span style={{ display: 'block', width: '22px', height: '2px', background: mobileOpen ? '#FF6803' : '#BFBFBF', borderRadius: '2px', transition: 'transform .2s, opacity .2s', transform: mobileOpen ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
+          </button>
+        )}
+
+        {user && (
+          <div className="nav-desktop-links flex items-center gap-5">
             <Link to={dashboardPath} data-cursor="link" className="nav-link-wrap" style={linkStyle(dashboardPath)}
               onMouseEnter={e => e.currentTarget.style.color = '#F5EDE4'}
               onMouseLeave={e => e.currentTarget.style.color = isActive(dashboardPath) ? '#BFBFBF' : '#BFBFBF'}>
@@ -346,6 +363,57 @@ export default function Navbar() {
       </nav>
       {/* Animated bottom glow sweep */}
       <div className="nav-glow-line" />
+
+      {/* Mobile drawer */}
+      {mobileOpen && user && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 250,
+          background: 'rgba(11,5,1,0.97)', backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,104,3,0.16)',
+          padding: '16px 20px 24px',
+          display: 'flex', flexDirection: 'column', gap: '4px',
+        }}>
+          {/* User info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 0 16px', borderBottom: '1px solid rgba(255,104,3,0.10)', marginBottom: '8px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,#FF6803,#AE3A02)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '15px', flexShrink: 0 }}>
+              {user.name?.[0]?.toUpperCase()}
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '14px', color: '#F5EDE4' }}>{user.name}</div>
+              <div style={{ fontSize: '11px', color: '#6b5445', textTransform: 'capitalize' }}>{user.role}</div>
+            </div>
+          </div>
+
+          {/* Nav links */}
+          {[
+            { label: 'Home', path: dashboardPath },
+            ...(user.role === 'client' ? [
+              { label: 'Post Job', path: '/jobs/post' },
+              { label: 'My Jobs', path: '/dashboard/client' },
+            ] : user.role === 'freelancer' ? [
+              { label: 'Browse Jobs', path: '/jobs' },
+              { label: 'My Work', path: '/dashboard/freelancer' },
+            ] : []),
+            ...(user.role !== 'admin' ? [
+              { label: 'Profile', path: '/profile/setup' },
+              { label: 'Payments', path: '/payments' },
+            ] : []),
+          ].map(({ label, path }) => (
+            <Link key={label} to={path} onClick={() => setMobileOpen(false)}
+              style={{ display: 'block', padding: '12px 8px', fontSize: '15px', fontWeight: 500, color: isActive(path) ? '#FF6803' : '#BFBFBF', textDecoration: 'none', borderRadius: '8px', transition: 'background .15s' }}
+              onTouchStart={e => e.currentTarget.style.background = 'rgba(255,104,3,0.08)'}
+              onTouchEnd={e => e.currentTarget.style.background = 'transparent'}
+            >
+              {label}
+            </Link>
+          ))}
+
+          <button onClick={() => { setMobileOpen(false); logout() }}
+            style={{ marginTop: '12px', padding: '12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: '10px', color: '#ef4444', fontSize: '14px', fontWeight: 600, textAlign: 'center', cursor: 'pointer' }}>
+            Logout
+          </button>
+        </div>
+      )}
     </div>
   )
 }

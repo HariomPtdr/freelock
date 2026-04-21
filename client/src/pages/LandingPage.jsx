@@ -132,6 +132,7 @@ function Counter({ end, prefix = '', suffix = '', color = T.blue }) {
 ═══════════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const nav = useNavigate()
+  const [navOpen, setNavOpen] = useState(false)
 
   /* Intro overlay state */
   const [phase, setPhase] = useState(0) // 0=visible, 1=sliding out, 2=gone
@@ -187,7 +188,8 @@ export default function LandingPage() {
             <span style={{ fontWeight: 800, fontSize: '17px', letterSpacing: '-0.05em' }}>SafeLancer</span>
             <span style={{ fontSize: '9px', fontWeight: 700, color: T.neon, background: `${T.blue}1a`, border: `1px solid ${T.blue}35`, borderRadius: '4px', padding: '2px 7px', letterSpacing: '0.07em' }}>BETA</span>
           </div>
-          <div style={{ display: 'flex', gap: '36px' }}>
+          {/* Desktop nav links */}
+          <div className="nav-desktop-links" style={{ display: 'flex', gap: '36px' }}>
             {[
               { label: 'How It Works', href: '#how-it-works' },
               { label: 'Features',     href: '#features' },
@@ -198,19 +200,31 @@ export default function LandingPage() {
                 onMouseLeave={e => e.target.style.color = T.muted}>{label}</a>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '9px' }}>
-            <button onClick={() => nav('/login')} style={{ background: 'none', border: `1px solid ${T.border}`, fontSize: '13px', fontWeight: 500, color: T.muted, cursor: 'pointer', padding: '8px 18px', borderRadius: '9px', transition: 'all .2s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = T.borderB; e.currentTarget.style.color = T.text }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.muted }}>
-              Log in
-            </button>
-            <button onClick={() => nav('/register')} style={{ background: T.gradB, color: '#fff', border: 'none', borderRadius: '9px', padding: '9px 22px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', boxShadow: `0 2px 20px ${T.blue}44`, transition: 'transform .15s, box-shadow .2s, opacity .15s' }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = '.88'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 6px 32px ${T.blue}66` }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = `0 2px 20px ${T.blue}44` }}>
-              Get Started
-            </button>
+          {/* Desktop CTA buttons */}
+          <div className="nav-desktop-links" style={{ display: 'flex', gap: '9px' }}>
+            <button onClick={() => nav('/login')} style={{ background: 'none', border: `1px solid ${T.border}`, fontSize: '13px', fontWeight: 500, color: T.muted, cursor: 'pointer', padding: '8px 18px', borderRadius: '9px', transition: 'all .2s' }}>Log in</button>
+            <button onClick={() => nav('/register')} style={{ background: T.gradB, color: '#fff', border: 'none', borderRadius: '9px', padding: '9px 22px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Get Started</button>
           </div>
+          {/* Mobile hamburger */}
+          <button className="nav-hamburger" onClick={() => setNavOpen(v => !v)}
+            style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexDirection: 'column', gap: '5px' }}>
+            <span style={{ display: 'block', width: '22px', height: '2px', background: navOpen ? T.blue : T.muted, borderRadius: '2px', transition: 'transform .2s', transform: navOpen ? 'translateY(7px) rotate(45deg)' : 'none' }} />
+            <span style={{ display: 'block', width: '22px', height: '2px', background: T.muted, borderRadius: '2px', opacity: navOpen ? 0 : 1, transition: 'opacity .2s' }} />
+            <span style={{ display: 'block', width: '22px', height: '2px', background: navOpen ? T.blue : T.muted, borderRadius: '2px', transition: 'transform .2s', transform: navOpen ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
+          </button>
         </div>
+        {/* Mobile nav dropdown */}
+        {navOpen && (
+          <div style={{ padding: '16px 6% 24px', borderTop: `1px solid ${T.border}`, background: 'rgba(4,4,12,0.96)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {[['How It Works','#how-it-works'],['Features','#features'],['Pricing','#pricing']].map(([l,h]) => (
+              <a key={l} href={h} onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '12px 8px', fontSize: '15px', fontWeight: 500, color: T.muted, textDecoration: 'none' }}>{l}</a>
+            ))}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button onClick={() => { nav('/login'); setNavOpen(false) }} style={{ flex: 1, background: 'none', border: `1px solid ${T.border}`, fontSize: '13px', fontWeight: 500, color: T.muted, cursor: 'pointer', padding: '11px', borderRadius: '9px' }}>Log in</button>
+              <button onClick={() => { nav('/register'); setNavOpen(false) }} style={{ flex: 1, background: T.gradB, color: '#fff', border: 'none', borderRadius: '9px', padding: '11px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Get Started</button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ╔══════════════════════════════════════════════════════
@@ -264,7 +278,7 @@ export default function LandingPage() {
           </div>
 
           {/* Trust row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginTop: '24px', animation: 'i-blur .8s ease 3.7s both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '24px', animation: 'i-blur .8s ease 3.7s both', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex' }}>
               {[T.blue, T.violet, T.cyan, '#10B981'].map((c, i) => (
                 <div key={i} style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${T.bg}`, background: `${c}`, marginLeft: i ? '-10px' : '0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: '#fff' }}>
@@ -543,7 +557,11 @@ export default function LandingPage() {
           section:nth-of-type(1) { padding-top: 100px !important; }
         }
         @media (max-width: 640px) {
-          footer > div { grid-template-columns: 1fr 1fr !important; }
+          footer > div > div { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 768px) {
+          .nav-desktop-links { display: none !important; }
+          .nav-hamburger { display: flex !important; }
         }
       `}</style>
     </div>

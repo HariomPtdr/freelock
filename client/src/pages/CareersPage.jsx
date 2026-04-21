@@ -1,4 +1,5 @@
 import StaticLayout from '../components/StaticLayout'
+import useIsMobile from '../utils/useIsMobile'
 
 const T = { blue: '#FF6803', muted: '#BFBFBF', faint: '#6b5445', text: '#F5EDE4', border: 'rgba(255,104,3,0.15)', bg: 'rgba(255,104,3,0.05)' }
 
@@ -20,6 +21,7 @@ const openings = [
 ]
 
 export default function CareersPage() {
+  const isMobile = useIsMobile()
   return (
     <StaticLayout
       title="Build the future of work."
@@ -27,14 +29,14 @@ export default function CareersPage() {
     >
       {/* Culture */}
       <section style={{ marginBottom: '80px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '28px' : '48px', alignItems: 'center' }}>
           <div>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.blue, marginBottom: '16px' }}>Our Culture</p>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(26px,3.5vw,44px)', letterSpacing: '-0.05em', color: T.text, margin: '0 0 20px', lineHeight: 1.1 }}>We ship fast.<br />We think deep.</h2>
             <p style={{ fontSize: '14px', color: T.muted, lineHeight: 1.75, margin: '0 0 14px' }}>SafeLancer is not a 9-to-5. We're a mission-driven team obsessed with solving a real problem: making freelance work trustworthy for everyone, everywhere.</p>
             <p style={{ fontSize: '14px', color: T.muted, lineHeight: 1.75, margin: 0 }}>We value clear thinking, direct communication, and radical ownership. We don't have layers of management — everyone builds, everyone ships.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '12px' }}>
             {perks.map(p => (
               <div key={p.title} style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: '14px', padding: '20px' }}>
                 <div style={{ fontSize: '22px', marginBottom: '8px' }}>{p.icon}</div>

@@ -318,3 +318,79 @@ select.dark-input { padding-right: 32px; }
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 20px rgba(255,104,3,0.4));
 }
+
+/* ═══════════════════════════════════════════════════════
+   TOUCH / MOBILE — restore native cursor
+═══════════════════════════════════════════════════════ */
+@media (hover: none), (pointer: coarse) {
+  *, *::before, *::after { cursor: auto !important; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — mobile overrides (≤ 768px)
+═══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body { overflow-x: hidden; }
+
+  /* ── Nav desktop links → hide; mobile btn → show ── */
+  .nav-desktop-links { display: none !important; }
+  .nav-hamburger     { display: flex !important; }
+
+  /* ── Dashboard grid: 4-col → 2-col ─────────────── */
+  .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+
+  /* ── Dashboard container padding ───────────────── */
+  .max-w-5xl { padding-left: 12px !important; padding-right: 12px !important; }
+  .max-w-4xl { padding-left: 12px !important; padding-right: 12px !important; }
+  .max-w-3xl { padding-left: 12px !important; padding-right: 12px !important; }
+
+  /* ── Table: horizontal scroll ───────────────────── */
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── Flex rows that should wrap on mobile ────────── */
+  .mobile-wrap { flex-wrap: wrap !important; }
+  .mobile-col  { flex-direction: column !important; }
+
+  /* ── Full width on mobile ────────────────────────── */
+  .mobile-full { width: 100% !important; }
+
+  /* ── Dashboard header: reduce padding ───────────── */
+  .p-6 { padding: 12px !important; }
+  .p-8 { padding: 16px !important; }
+}
+
+/* ─── Mobile ≤ 480px (small phones) ──────────────── */
+@media (max-width: 480px) {
+  .grid-cols-4 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+  .grid-cols-2 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+  .gap-5, .gap-4 { gap: 10px !important; }
+  .p-6 { padding: 10px !important; }
+  .px-6 { padding-left: 12px !important; padding-right: 12px !important; }
+}
+
+/* ─── App-wide mobile utils ───────────────────────── */
+@media (max-width: 768px) {
+  /* Dashboard flex rows → wrap */
+  .flex.items-center.gap-4:has(button) { flex-wrap: wrap; }
+
+  /* Contract/job cards: hide less important info on small screens */
+  .min-w-0 { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Nav mobile menu */
+  .nav-hamburger { display: flex !important; }
+  .nav-desktop-links { display: none !important; }
+
+  /* Prevent overflow from fixed width elements */
+  .max-w-5xl, .max-w-4xl, .max-w-3xl { padding-left: 14px !important; padding-right: 14px !important; }
+
+  /* Dashboard header padding */
+  .dashboard-header { padding: 20px !important; }
+
+  /* Make action buttons wrap */
+  .flex.gap-2.flex-shrink-0 { flex-wrap: wrap; }
+
+  /* Auth cards: full width with padding */
+  .max-w-md { max-width: 100% !important; }
+  .rounded-2xl.p-8 { padding: 20px !important; }
+}

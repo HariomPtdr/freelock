@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import StaticLayout from '../components/StaticLayout'
+import useIsMobile from '../utils/useIsMobile'
 
 const T = { blue: '#FF6803', muted: '#BFBFBF', faint: '#6b5445', text: '#F5EDE4', border: 'rgba(255,104,3,0.15)', bg: 'rgba(255,104,3,0.05)', gradB: 'linear-gradient(135deg,#FF6803,#AE3A02)' }
 
@@ -17,6 +18,7 @@ const inputStyle = {
 }
 
 export default function ContactPage() {
+  const isMobile = useIsMobile()
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [sent, setSent] = useState(false)
 
@@ -30,7 +32,7 @@ export default function ContactPage() {
       title="Get in touch."
       subtitle="We're a small team and we read every message. Expect a reply within 1–2 business days."
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '64px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.2fr', gap: isMobile ? '40px' : '64px', alignItems: 'start' }}>
 
         {/* Left: channels */}
         <div>
@@ -60,7 +62,7 @@ export default function ContactPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px' }}>
                 <div>
                   <label style={{ fontSize: '12px', color: T.muted, fontWeight: 600, display: 'block', marginBottom: '6px' }}>Name</label>
                   <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your name" style={inputStyle} />

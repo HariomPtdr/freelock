@@ -1,4 +1,5 @@
 import StaticLayout from '../components/StaticLayout'
+import useIsMobile from '../utils/useIsMobile'
 
 const T = { blue: '#FF6803', muted: '#BFBFBF', faint: '#6b5445', text: '#F5EDE4', border: 'rgba(255,104,3,0.15)', bg: 'rgba(255,104,3,0.05)' }
 
@@ -16,6 +17,7 @@ const team = [
 ]
 
 export default function AboutPage() {
+  const isMobile = useIsMobile()
   return (
     <StaticLayout
       title="Built for trust."
@@ -24,7 +26,7 @@ export default function AboutPage() {
       {/* Mission */}
       <section style={{ marginBottom: '96px' }}>
         <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.blue, marginBottom: '16px' }}>Our Mission</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '28px' : '48px', alignItems: 'start' }}>
           <div>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(28px,4vw,52px)', letterSpacing: '-0.05em', lineHeight: 1, color: T.text, margin: '0 0 24px' }}>
               Freelance without fear.
