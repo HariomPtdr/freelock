@@ -73,7 +73,7 @@ export default function FreelancerDashboard() {
   const refreshEarnings = () => {
     api.get('/api/transactions/my').then(({ data }) => {
       setWalletBalance(data.walletBalance)
-      setTransactions(data.transactions)
+      setTransactions(data.transactions || [])
     }).catch(() => {})
   }
 

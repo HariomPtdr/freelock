@@ -22,7 +22,7 @@ export default function FreelancerBrowse() {
       if (f.minRating) params.minRating = f.minRating
       if (f.availability) params.availability = f.availability
       const { data } = await api.get('/api/jobs/freelancers/browse', { params })
-      setFreelancers(data)
+      setFreelancers(Array.isArray(data) ? data : [])
     } catch { setFreelancers([]) }
     finally { setLoading(false) }
   }

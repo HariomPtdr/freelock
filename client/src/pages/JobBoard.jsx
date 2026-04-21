@@ -32,7 +32,7 @@ export default function JobBoard() {
       if (f.category) params.category = f.category
       if (f.experienceLevel) params.experienceLevel = f.experienceLevel
       const { data } = await api.get('/api/jobs', { params })
-      setJobs(data)
+      setJobs(Array.isArray(data) ? data : [])
     } catch { setJobs([]) }
     finally { setLoading(false) }
   }
