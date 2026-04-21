@@ -170,13 +170,13 @@ export default function Register() {
                   boxShadow: role === value ? '0 0 20px rgba(255,104,3,0.14)' : 'none',
                 }}
               >
-                <div className="mb-2.5" style={{ color: role === value ? '#BFBFBF' : '#1c1008' }}>
+                <div className="mb-2.5" style={{ color: role === value ? '#FF6803' : '#6b5445' }}>
                   {icon}
                 </div>
                 <div className="text-sm font-semibold" style={{ color: role === value ? '#fff' : '#BFBFBF' }}>
                   {label}
                 </div>
-                <div className="text-xs mt-0.5" style={{ color: role === value ? '#BFBFBF' : '#1c1008' }}>
+                <div className="text-xs mt-0.5" style={{ color: role === value ? '#BFBFBF' : '#6b5445' }}>
                   {sub}
                 </div>
               </button>
