@@ -224,23 +224,23 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%', zIndex: 1, background: 'linear-gradient(to top, #0B0501 0%, transparent 100%)', pointerEvents: 'none' }} />
 
         {/* Hero content */}
-        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: '120px 6% 80px', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: '96px 6% 0', maxWidth: '1000px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
 
           {/* Badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: `${T.blue}14`, border: `1px solid ${T.blue}35`, borderRadius: '999px', padding: '6px 18px', marginBottom: '40px', animation: 'i-blur .8s ease 2.4s both' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: `${T.blue}14`, border: `1px solid ${T.blue}35`, borderRadius: '999px', padding: '6px 18px', marginBottom: '20px', animation: 'i-blur .8s ease 2.4s both' }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 10px #10B981, 0 0 20px #10B98180' }} />
             <span style={{ fontSize: '11px', fontWeight: 700, color: T.neon, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Live · Cryptographic Escrow Platform</span>
           </div>
 
           {/* Main heading — HUGE */}
-          <h1 style={{ fontWeight: 900, fontSize: 'clamp(72px,14vw,170px)', letterSpacing: '-0.07em', lineHeight: 0.86, margin: '0 0 32px', animation: 'i-blur 1s ease 2.7s both' }}>
+          <h1 style={{ fontWeight: 900, fontSize: 'clamp(52px,9vw,110px)', letterSpacing: '-0.07em', lineHeight: 0.86, margin: '0 0 18px', animation: 'i-blur 1s ease 2.7s both' }}>
             <span style={{ display: 'block', color: T.text, textShadow: '0 0 80px rgba(255,104,3,0.25)' }}>Secure</span>
             <span style={{ display: 'block', background: 'linear-gradient(135deg,#BFBFBF 0%,#AE3A02 50%,#BFBFBF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: "transparent", filter: 'drop-shadow(0 0 60px rgba(255,104,3,0.8))' }}>Freelance</span>
             <span style={{ display: 'block', color: T.text, textShadow: '0 0 80px rgba(255,104,3,0.25)' }}>Work.</span>
           </h1>
 
           {/* Sub */}
-          <p style={{ fontSize: 'clamp(15px,1.5vw,18px)', color: T.muted, lineHeight: 1.72, maxWidth: '480px', margin: '0 auto 44px', fontWeight: 400, animation: 'i-blur .9s ease 3.1s both' }}>
+          <p style={{ fontSize: 'clamp(14px,1.3vw,16px)', color: T.muted, lineHeight: 1.6, maxWidth: '480px', margin: '0 auto 24px', fontWeight: 400, animation: 'i-blur .9s ease 3.1s both' }}>
             Lock funds before work begins. Release on approval. Every milestone SHA-256 verified — immutable proof, zero fraud.
           </p>
 
@@ -260,7 +260,7 @@ export default function LandingPage() {
           </div>
 
           {/* Trust row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginTop: '56px', animation: 'i-blur .8s ease 3.7s both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginTop: '24px', animation: 'i-blur .8s ease 3.7s both' }}>
             <div style={{ display: 'flex' }}>
               {[T.blue, T.violet, T.cyan, '#10B981'].map((c, i) => (
                 <div key={i} style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${T.bg}`, background: `${c}`, marginLeft: i ? '-10px' : '0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: '#fff' }}>
@@ -278,25 +278,17 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', opacity: 0.45, animation: 'i-blur 1s ease 4s both' }}>
-          <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: T.muted }}>Scroll</span>
-          <div style={{ width: '1px', height: '40px', background: `linear-gradient(to bottom, ${T.blue}80, transparent)`, animation: 's-pulse 2s ease-in-out infinite' }} />
+        {/* Ticker — pinned inside hero at bottom */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2, borderTop: `1px solid ${T.border}`, background: `${T.blue}08`, padding: '13px 0', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', width: 'max-content', animation: 'ticker 32s linear infinite', whiteSpace: 'nowrap' }}>
+            {[0,1,2].map(i => (
+              <span key={i} style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: `${T.neon}55` }}>
+                {'  ·  ESCROW  ·  SHA-256  ·  MILESTONE PAYMENTS  ·  ZERO FRAUD  ·  CRYPTOGRAPHIC PROOF  ·  SMART RELEASE  ·  VERIFIED DELIVERY  ·  TRUSTLESS  ·  '}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
-
-      {/* ╔══════════════════════════════════════════════════════
-          TICKER
-      ══════════════════════════════════════════════════════╗ */}
-      <div style={{ borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`, background: `${T.blue}08`, padding: '14px 0', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', width: 'max-content', animation: 'ticker 32s linear infinite', whiteSpace: 'nowrap' }}>
-          {[0,1,2].map(i => (
-            <span key={i} style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: `${T.neon}55` }}>
-              {'  ·  ESCROW  ·  SHA-256  ·  MILESTONE PAYMENTS  ·  ZERO FRAUD  ·  CRYPTOGRAPHIC PROOF  ·  SMART RELEASE  ·  VERIFIED DELIVERY  ·  TRUSTLESS  ·  '}
-            </span>
-          ))}
-        </div>
-      </div>
 
       {/* ╔══════════════════════════════════════════════════════
           FEATURES — glassmorphism cards with real tilt
