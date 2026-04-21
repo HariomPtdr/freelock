@@ -7,6 +7,8 @@ export default function Hero3D() {
   useEffect(() => {
     const mount = mountRef.current
     if (!mount) return
+    let cleanup = () => {}
+    try {
 
     // Use window dimensions — canvas covers full viewport
     let W = window.innerWidth
@@ -144,14 +146,16 @@ export default function Hero3D() {
     }
     tick()
 
-    return () => {
-      cancelAnimationFrame(id)
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('resize', onResize)
-      td.forEach(o => o.dispose?.())
-      renderer.dispose()
-      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement)
-    }
+      cleanup = () => {
+        cancelAnimationFrame(id)
+        window.removeEventListener('mousemove', onMove)
+        window.removeEventListener('resize', onResize)
+        td.forEach(o => o.dispose?.())
+        renderer.dispose()
+        if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement)
+      }
+    } catch (e) { console.warn('Hero3D init failed:', e) }
+    return () => cleanup()
   }, [])
 
   return <div ref={mountRef} style={{ position: 'absolute', inset: 0 }} />
