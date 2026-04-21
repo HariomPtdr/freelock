@@ -492,21 +492,36 @@ export default function LandingPage() {
               <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: T.gradB, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><LogoMark size={14} color="white" keyholeColor="#7A2200" /></div>
               <span style={{ fontWeight: 800, fontSize: '15px', letterSpacing: '-0.04em' }}>SafeLancer</span>
             </div>
-            <p style={{ fontSize: '13px', color: '#1c1008', lineHeight: 1.65, maxWidth: '210px', margin: '0 0 20px' }}>Cryptographic escrow for the future of work.</p>
-            <div style={{ fontSize: '11px', color: '#120a02' }}>© 2025 SafeLancer</div>
+            <p style={{ fontSize: '13px', color: '#6b5445', lineHeight: 1.65, maxWidth: '210px', margin: '0 0 20px' }}>Cryptographic escrow for the future of work.</p>
+            <div style={{ fontSize: '11px', color: '#6b5445' }}>© 2025 SafeLancer</div>
           </div>
           {[
-            { h: 'Platform', links: ['How It Works', 'Features', 'Pricing', 'API'] },
-            { h: 'Company',  links: ['About', 'Blog', 'Careers', 'Press'] },
-            { h: 'Legal',    links: ['Privacy', 'Terms', 'Security', 'Contact'] },
+            { h: 'Platform', links: [
+              { label: 'How It Works', href: '#how-it-works' },
+              { label: 'Features',     href: '#features' },
+              { label: 'Pricing',      href: '#pricing' },
+              { label: 'API',          href: '#' },
+            ]},
+            { h: 'Company',  links: [
+              { label: 'About',    href: '#' },
+              { label: 'Blog',     href: '#' },
+              { label: 'Careers',  href: '#' },
+              { label: 'Press',    href: '#' },
+            ]},
+            { h: 'Legal',    links: [
+              { label: 'Privacy',   href: '#' },
+              { label: 'Terms',     href: '#' },
+              { label: 'Security',  href: '#' },
+              { label: 'Contact',   href: '#' },
+            ]},
           ].map(col => (
             <div key={col.h}>
-              <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: `${T.blue}55`, marginBottom: '18px' }}>{col.h}</div>
+              <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: `${T.blue}80`, marginBottom: '18px' }}>{col.h}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {col.links.map(l => (
-                  <a key={l} href="#" style={{ fontSize: '13px', color: '#1c1008', textDecoration: 'none', transition: 'color .18s' }}
+                {col.links.map(({ label, href }) => (
+                  <a key={label} href={href} style={{ fontSize: '13px', color: '#6b5445', textDecoration: 'none', transition: 'color .18s' }}
                     onMouseEnter={e => e.target.style.color = T.text}
-                    onMouseLeave={e => e.target.style.color = '#1c1008'}>{l}</a>
+                    onMouseLeave={e => e.target.style.color = '#6b5445'}>{label}</a>
                 ))}
               </div>
             </div>
