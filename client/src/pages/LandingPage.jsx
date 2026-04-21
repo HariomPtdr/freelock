@@ -346,7 +346,7 @@ export default function LandingPage() {
 
             {[
               { n: '01', t: 'Post a Job',         d: 'Define your project, budget, and milestone breakdown. The escrow contract is generated automatically.' },
-              { n: '02', t: 'Interview & Hire',   d: 'Browse portfolios, schedule video interviews, negotiate terms — all inside SafeLancer.' },
+              { n: '02', t: 'Hire',                d: 'Review applicants\' profiles and projects, shortlist the best fit, and hire directly — freelancers offering discounts are highlighted automatically.' },
               { n: '03', t: 'Fund Milestones',    d: 'Client funds each milestone via Razorpay. Funds lock in escrow. Work begins only when confirmed.' },
               { n: '04', t: 'Submit & Verify',    d: 'Upload deliverables. SHA-256 hash proves authenticity. Approve to release, dispute to escalate.' },
             ].map((s, i) => (
