@@ -297,8 +297,8 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           FEATURES — glassmorphism cards with real tilt
       ══════════════════════════════════════════════════════╗ */}
-      <section id="features" style={{ padding: '160px 6%', background: '#0B0501', position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box' }}>
+      <section id="features" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '80px 6%', background: '#0B0501', position: 'relative', zIndex: 2 }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box', width: '100%' }}>
           <Reveal>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.blue, marginBottom: '16px' }}>Three principles</p>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(36px,5.5vw,72px)', letterSpacing: '-0.06em', lineHeight: 0.95, color: T.text, maxWidth: '600px', marginBottom: '80px' }}>
@@ -334,8 +334,8 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           PROCESS — editorial large numbered steps
       ══════════════════════════════════════════════════════╗ */}
-      <section id="how-it-works" style={{ padding: '80px 6% 160px', borderTop: `1px solid ${T.border}`, background: '#0B0501', position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box' }}>
+      <section id="how-it-works" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '80px 6%', borderTop: `1px solid ${T.border}`, background: '#0B0501', position: 'relative', zIndex: 2 }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box', width: '100%' }}>
           <Reveal>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.blue, marginBottom: '16px' }}>The flow</p>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(34px,5vw,66px)', letterSpacing: '-0.06em', lineHeight: 0.95, color: T.text, marginBottom: '90px', maxWidth: '520px' }}>
@@ -373,8 +373,8 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           GALLERY — cinematic preview cards
       ══════════════════════════════════════════════════════╗ */}
-      <section style={{ padding: '120px 6% 160px', borderTop: `1px solid ${T.border}`, background: 'rgba(255,104,3,0.016)' }}>
-        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box' }}>
+      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', borderTop: `1px solid ${T.border}`, background: 'rgba(255,104,3,0.016)', padding: '80px 6%' }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box', width: '100%' }}>
           <Reveal>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.blue, marginBottom: '16px' }}>Platform preview</p>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(32px,4.8vw,64px)', letterSpacing: '-0.06em', lineHeight: 0.95, color: T.text, marginBottom: '72px', maxWidth: '480px' }}>
@@ -422,8 +422,8 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           STATS
       ══════════════════════════════════════════════════════╗ */}
-      <section style={{ padding: '140px 6%', borderTop: `1px solid ${T.border}` }}>
-        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box' }}>
+      <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '80px 6%', borderTop: `1px solid ${T.border}` }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box', width: '100%' }}>
           <Reveal>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(32px,5vw,64px)', letterSpacing: '-0.06em', lineHeight: 0.95, color: T.text, textAlign: 'center', marginBottom: '90px' }}>
               Numbers that matter.
@@ -452,7 +452,7 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           CTA — 2D → 3D feel: depth returns with glow
       ══════════════════════════════════════════════════════╗ */}
-      <section id="pricing" style={{ padding: '140px 6% 180px', borderTop: `1px solid ${T.border}`, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section id="pricing" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 6%', borderTop: `1px solid ${T.border}`, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         {/* Deep glow behind CTA */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '800px', height: '500px', background: `radial-gradient(ellipse, ${T.blue}12 0%, ${T.violet}08 40%, transparent 70%)`, pointerEvents: 'none', filter: 'blur(40px)' }} />
         {/* Grid lines coming back (3D hint) */}
