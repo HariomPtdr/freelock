@@ -503,16 +503,16 @@ export default function LandingPage() {
               { label: 'API',          href: '#' },
             ]},
             { h: 'Company',  links: [
-              { label: 'About',    href: '#' },
-              { label: 'Blog',     href: '#' },
-              { label: 'Careers',  href: '#' },
-              { label: 'Press',    href: '#' },
+              { label: 'About',    href: '/about' },
+              { label: 'Blog',     href: '/blog' },
+              { label: 'Careers',  href: '/careers' },
+              { label: 'Press',    href: '/press' },
             ]},
             { h: 'Legal',    links: [
-              { label: 'Privacy',   href: '#' },
-              { label: 'Terms',     href: '#' },
-              { label: 'Security',  href: '#' },
-              { label: 'Contact',   href: '#' },
+              { label: 'Privacy',   href: '/privacy' },
+              { label: 'Terms',     href: '/terms' },
+              { label: 'Security',  href: '/security' },
+              { label: 'Contact',   href: '/contact' },
             ]},
           ].map(col => (
             <div key={col.h}>
