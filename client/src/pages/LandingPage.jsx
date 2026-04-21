@@ -188,10 +188,14 @@ export default function LandingPage() {
             <span style={{ fontSize: '9px', fontWeight: 700, color: T.neon, background: `${T.blue}1a`, border: `1px solid ${T.blue}35`, borderRadius: '4px', padding: '2px 7px', letterSpacing: '0.07em' }}>BETA</span>
           </div>
           <div style={{ display: 'flex', gap: '36px' }}>
-            {['How It Works', 'Features', 'Pricing'].map(l => (
-              <a key={l} href="#" style={{ fontSize: '13px', fontWeight: 500, color: T.muted, textDecoration: 'none', transition: 'color .18s' }}
+            {[
+              { label: 'How It Works', href: '#how-it-works' },
+              { label: 'Features',     href: '#features' },
+              { label: 'Pricing',      href: '#pricing' },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} style={{ fontSize: '13px', fontWeight: 500, color: T.muted, textDecoration: 'none', transition: 'color .18s' }}
                 onMouseEnter={e => e.target.style.color = T.text}
-                onMouseLeave={e => e.target.style.color = T.muted}>{l}</a>
+                onMouseLeave={e => e.target.style.color = T.muted}>{label}</a>
             ))}
           </div>
           <div style={{ display: 'flex', gap: '9px' }}>
@@ -293,7 +297,7 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           FEATURES — glassmorphism cards with real tilt
       ══════════════════════════════════════════════════════╗ */}
-      <section style={{ padding: '160px 6%', background: '#0B0501', position: 'relative', zIndex: 2 }}>
+      <section id="features" style={{ padding: '160px 6%', background: '#0B0501', position: 'relative', zIndex: 2 }}>
         <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box' }}>
           <Reveal>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.blue, marginBottom: '16px' }}>Three principles</p>
@@ -330,7 +334,7 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           PROCESS — editorial large numbered steps
       ══════════════════════════════════════════════════════╗ */}
-      <section style={{ padding: '80px 6% 160px', borderTop: `1px solid ${T.border}`, background: '#0B0501', position: 'relative', zIndex: 2 }}>
+      <section id="how-it-works" style={{ padding: '80px 6% 160px', borderTop: `1px solid ${T.border}`, background: '#0B0501', position: 'relative', zIndex: 2 }}>
         <div style={{ maxWidth: '1360px', margin: '0 auto', boxSizing: 'border-box' }}>
           <Reveal>
             <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.blue, marginBottom: '16px' }}>The flow</p>
@@ -448,7 +452,7 @@ export default function LandingPage() {
       {/* ╔══════════════════════════════════════════════════════
           CTA — 2D → 3D feel: depth returns with glow
       ══════════════════════════════════════════════════════╗ */}
-      <section style={{ padding: '140px 6% 180px', borderTop: `1px solid ${T.border}`, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section id="pricing" style={{ padding: '140px 6% 180px', borderTop: `1px solid ${T.border}`, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         {/* Deep glow behind CTA */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '800px', height: '500px', background: `radial-gradient(ellipse, ${T.blue}12 0%, ${T.violet}08 40%, transparent 70%)`, pointerEvents: 'none', filter: 'blur(40px)' }} />
         {/* Grid lines coming back (3D hint) */}
