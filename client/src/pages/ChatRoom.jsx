@@ -43,7 +43,7 @@ export default function ChatRoom() {
   // Load messages
   useEffect(() => {
     api.get(`/api/messages/${contractId}`)
-      .then(({ data }) => setMessages(data))
+      .then(({ data }) => setMessages(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [contractId])
 

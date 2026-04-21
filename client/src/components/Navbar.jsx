@@ -59,7 +59,7 @@ export default function Navbar() {
       setJobsLoading(true)
       try {
         const { data } = await api.get('/api/jobs/my-jobs')
-        setJobs(data)
+        setJobs(Array.isArray(data) ? data : [])
       } catch {}
       finally { setJobsLoading(false) }
     }
